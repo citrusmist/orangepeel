@@ -10,7 +10,7 @@ class OP_View {
 	}
 
 	public function render(){
-		return OPView::render( $this->_path, $this->_data );
+		return self::render( $this->_path, $this->_data );
 	}
 
 	public function set_path( $view_path ){
@@ -36,6 +36,32 @@ class OP_View {
 
 	public function __isset( $name ) {
 		return isset( $this->_data[$name] );
+	}
+
+	/**
+	 * -------------------------------------
+	 * Render a Template.
+	 * -------------------------------------
+	 * 
+	 * @param $filePath - include path to the template.
+	 * @param null $viewData - any data to be used within the template.
+	 * @return string - 
+	 * 
+	 */
+	public static function render( $filePath, $viewData = null ) {
+
+		// Was any data sent through?
+		( $viewData ) ? extract( $viewData ) : null;
+
+		ob_start();
+		include ( $filePath );
+		$template = ob_get_contents();
+		ob_end_clean();
+
+		//README: Probably can be refactored ot just 
+		//$template = ob_end_clean();
+
+		return $template;
 	}
 
 }

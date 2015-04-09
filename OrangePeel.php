@@ -3,7 +3,7 @@
 /*----------------------------------------------------------------------------*
   OrangePeel subl Framework
  *----------------------------------------------------------------------------*/
-require_once( plugin_dir_path( __FILE__ ) . 'CMView.class.php' );
+// require_once( plugin_dir_path( __FILE__ ) . 'CMView.class.php' );
 require_once( plugin_dir_path( __FILE__ ) . 'helper_funcs.php' );
 
 require_once( plugin_dir_path( __FILE__ ) . 'OP_Plugin.php' );
