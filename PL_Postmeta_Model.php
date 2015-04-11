@@ -9,7 +9,7 @@
  * for this purpose we would need to use a custom table. However, metadata
  * like other data neeeds to be saved, deleted and validated
  */
-abstract class OP_Postmeta_Model extends OP_Model {
+abstract class PL_Postmeta_Model extends PL_Model {
 	
 	protected $_key;
 	protected $_post;
@@ -38,7 +38,7 @@ abstract class OP_Postmeta_Model extends OP_Model {
 
 	public function set_post( $post ) {
 
-		if( is_a( $post, 'WP_Post') || is_a( $post, 'OP_CPT_Model' ) ) {
+		if( is_a( $post, 'WP_Post') || is_a( $post, 'PL_CPT_Model' ) ) {
 			$this->_post = $post;
 		}
 	}

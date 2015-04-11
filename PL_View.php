@@ -1,6 +1,6 @@
 <?php 
 
-class OP_View {
+class PL_View {
 
 	protected $_path = null;
 	protected $_data = null;

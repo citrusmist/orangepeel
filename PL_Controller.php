@@ -1,5 +1,5 @@
 <?php
-abstract class OP_Controller {
+abstract class PL_Controller {
 
 	private $_bootstrap = null;
 
@@ -9,7 +9,7 @@ abstract class OP_Controller {
 	protected $last_render    = null;
 
 	public function __construct(){
-		$this->view = new OP_View();
+		$this->view = new PL_View();
 	}
 
 	public function set_bootstrap( $value ){
@@ -124,7 +124,7 @@ abstract class OP_Controller {
 	}
 
 	protected function register_template( $filename ) {
-		return new OP_Template_Include(
+		return new PL_Template_Include(
 			$filename,
 			$this->get_view_path( $filename )
 		);

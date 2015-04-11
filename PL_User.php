@@ -2,7 +2,7 @@
 /**
 * 
 */
-class OP_User {
+class PL_User {
 	
 	protected $_data;
 	protected $_user;

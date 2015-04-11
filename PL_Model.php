@@ -3,7 +3,7 @@
 /**
 * 
 */
-abstract class OP_Model implements OP_Recordable, OP_Validatable {
+abstract class PL_Model implements PL_Recordable, PL_Validatable {
 
 	protected $_errors         = array();
 	protected $_changed_record = false;
@@ -53,7 +53,7 @@ abstract class OP_Model implements OP_Recordable, OP_Validatable {
 		foreach ($descriptions as $key => $description) {
 
 			$error = null;
-			$validator = new OP_Validator( $key, $this->$key, $description );
+			$validator = new PL_Validator( $key, $this->$key, $description );
 			$error = $validator->validate();
 
 		 	if( is_wp_error( $error ) ){

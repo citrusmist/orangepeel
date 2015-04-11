@@ -4,7 +4,7 @@
  * 
  */
 
-abstract class OP_Std_Model implements OP_Recordable, OP_Validatable {
+abstract class PL_Std_Model implements PL_Recordable, PL_Validatable {
 	
 	protected $_errors = array();
 
@@ -155,7 +155,7 @@ abstract class OP_Std_Model implements OP_Recordable, OP_Validatable {
 		global $wpdb;
 
 		$associations = static::get_data_associations();
-		$plural_prop = OP_Inflector::pluralize( $property );
+		$plural_prop = PL_Inflector::pluralize( $property );
 
 		if( property_exists( get_called_class(), $property ) ){
 
@@ -192,7 +192,7 @@ abstract class OP_Std_Model implements OP_Recordable, OP_Validatable {
 		
 		$table       = static::get_table_name();
 		$class       = strtolower( get_called_class() ); 
-		$prop_table  = OP_Inflector::pluralize( $property );
+		$prop_table  = PL_Inflector::pluralize( $property );
 		$association = $associations[$prop_table]; 
 
 		if( property_exists( $value, 'ID') ){
@@ -344,7 +344,7 @@ abstract class OP_Std_Model implements OP_Recordable, OP_Validatable {
 			}
 
 			if( empty( $this->$name ) 
-				|| !is_a( $this->{$name}[0], 'OP_Std_Model' ) ) {
+				|| !is_a( $this->{$name}[0], 'PL_Std_Model' ) ) {
 				continue;
 			}
 
@@ -462,7 +462,7 @@ abstract class OP_Std_Model implements OP_Recordable, OP_Validatable {
 		foreach ($descriptions as $key => $description) {
 
 			$error = null;
-			$validator = new OP_Validator( $key, $this->$key, $description );
+			$validator = new PL_Validator( $key, $this->$key, $description );
 			$error = $validator->validate();
 
 		 	if( is_wp_error( $error ) ){
@@ -480,7 +480,7 @@ abstract class OP_Std_Model implements OP_Recordable, OP_Validatable {
 		global $wpdb;
 
 		$table_name = null;
-		$plural_class = strtolower( OP_Inflector::pluralize( get_called_class() ) );
+		$plural_class = strtolower( PL_Inflector::pluralize( get_called_class() ) );
 
 		if ( isset( static::$table_name ) ){
 			$table_name = $wpdb->{static::$table_name};

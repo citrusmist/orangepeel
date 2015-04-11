@@ -1,6 +1,6 @@
 <?php 
 
-interface OP_Recordable {
+interface PL_Recordable {
 
 	public static function find( $id );
 

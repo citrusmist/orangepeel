@@ -3,7 +3,7 @@
 /**
 * 
 */
-abstract class OP_CPT_Model implements OP_Recordable, OP_Validatable {
+abstract class PL_CPT_Model implements PL_Recordable, PL_Validatable {
 	
 	protected $_post;
 	protected $_post_format;
@@ -95,7 +95,7 @@ abstract class OP_CPT_Model implements OP_Recordable, OP_Validatable {
 	public static function find_by( $property, $value ) {
 
 		// $associations = static::get_data_associations();
-		$plural_prop = OP_Inflector::pluralize( $property );
+		$plural_prop = PL_Inflector::pluralize( $property );
 
 		if( property_exists( get_called_class(), $property ) ) {
 
@@ -297,7 +297,7 @@ abstract class OP_CPT_Model implements OP_Recordable, OP_Validatable {
 				continue;
 			}
 
-			if( is_a( $this->$key, 'OP_Postmeta_Model' ) ) {
+			if( is_a( $this->$key, 'PL_Postmeta_Model' ) ) {
 				$this->$key->set_post( $this );
 				$this->$key->save();
 				continue;
@@ -505,7 +505,7 @@ abstract class OP_CPT_Model implements OP_Recordable, OP_Validatable {
 		foreach( $descriptions as $key => $description ) {
 
 			$error     = null;
-			$validator = new OP_Validator( $key, $this->$key, $description );
+			$validator = new PL_Validator( $key, $this->$key, $description );
 			$error     = $validator->validate();
 
 		 	if( is_wp_error( $error ) ){
@@ -522,7 +522,7 @@ abstract class OP_CPT_Model implements OP_Recordable, OP_Validatable {
 			 */
 		 	if( !empty( $description['format'] ) && $description['format'] == 'object' ) {
 
-		 		if( is_a( $this->$key, 'OP_Validatable' ) ) {
+		 		if( is_a( $this->$key, 'PL_Validatable' ) ) {
 		 			$this->$key->validate();
 		 		}
 		 	}
@@ -536,7 +536,7 @@ abstract class OP_CPT_Model implements OP_Recordable, OP_Validatable {
 		foreach( $data_desc as $key => $desc ) {
 
 			if( !empty( $desc['format'] ) && $desc['format'] == 'object' ) {
-				if( is_a( $this->$key, 'OP_Validatable' ) ) {
+				if( is_a( $this->$key, 'PL_Validatable' ) ) {
 
 		 			$this->_validatable_props[$key] = true;
 		 		}

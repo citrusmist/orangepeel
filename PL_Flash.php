@@ -1,6 +1,6 @@
 <?php
 
-class OP_Flash {
+class PL_Flash {
 
 	protected static $flash = null;
 

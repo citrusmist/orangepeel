@@ -3,7 +3,7 @@
 /**
  * 
  */
-abstract class OP_Plugin {
+abstract class PL_Plugin {
 	
 	/**
 	 * The loader that's responsible for maintaining and registering all hooks that power

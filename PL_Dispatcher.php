@@ -1,6 +1,6 @@
 <?php
 
-class OP_Dispatcher{
+class PL_Dispatcher{
 	private $_param;
 	private $_request;
 	// private $_controller;

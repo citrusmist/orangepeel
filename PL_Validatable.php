@@ -1,6 +1,6 @@
 <?php 
 
-interface OP_Validatable {
+interface PL_Validatable {
 
 	
 

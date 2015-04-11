@@ -1,6 +1,6 @@
 <?php 
 
-class OP_Validator{
+class PL_Validator{
 
 	protected $_key;
 	protected $_value;

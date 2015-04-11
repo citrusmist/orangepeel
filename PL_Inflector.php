@@ -33,7 +33,7 @@
 * @since 0.1
 * @version $Revision 0.1 $
 */
-class OP_Inflector
+class PL_Inflector
 {
 		// ------ CLASS METHODS ------ //
 

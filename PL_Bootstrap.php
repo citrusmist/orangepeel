@@ -10,7 +10,7 @@
  */
 
 
-abstract class OP_Bootstrap {
+abstract class PL_Bootstrap {
 
 	protected $public_controller = null;
 	protected $admin_controller  = null;
@@ -52,7 +52,7 @@ abstract class OP_Bootstrap {
 		}	
 
 		if( null === $this->dispatcher ) {
-			$this->dispatcher = new OP_Dispatcher( $key, $_REQUEST );
+			$this->dispatcher = new PL_Dispatcher( $key, $_REQUEST );
 		}
 
 		return $this->dispatcher;

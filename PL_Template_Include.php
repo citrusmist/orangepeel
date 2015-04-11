@@ -1,6 +1,6 @@
 <?php
 
-class OP_Template_Include{
+class PL_Template_Include{
 
 	protected $template_path;
 	protected $fallback_path;
