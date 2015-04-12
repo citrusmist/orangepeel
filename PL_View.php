@@ -48,7 +48,7 @@ class PL_View {
 	 * @return string - 
 	 * 
 	 */
-	public static function render( $filePath, $viewData = null ) {
+	public static function render_tmpl( $filePath, $viewData = null ) {
 
 		// Was any data sent through?
 		( $viewData ) ? extract( $viewData ) : null;
