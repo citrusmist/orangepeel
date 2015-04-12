@@ -1,5 +1,19 @@
 <?php 
 
+/**
+ * @package Peel
+ * @version 0.2
+ */
+
+/*
+Plugin Name: Peel
+Plugin URI: https://github.com/citrusmist/peel
+Description: MVC inspired plugin framework
+Author: Milos Soskic
+Version: 0.2
+Author URI: http://citrus-mist.com
+*/
+
 /*----------------------------------------------------------------------------*
   OrangePeel subl Framework
  *----------------------------------------------------------------------------*/
