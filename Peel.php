@@ -1,5 +1,4 @@
 <?php 
-
 /**
  * @package Peel
  * @version 0.2
@@ -14,6 +13,8 @@ Version: 0.2
 Author URI: http://citrus-mist.com
 */
 
+namespace Peel;
+
 /*----------------------------------------------------------------------------*
   OrangePeel subl Framework
  *----------------------------------------------------------------------------*/
@@ -21,6 +22,8 @@ Author URI: http://citrus-mist.com
 require_once( plugin_dir_path( __FILE__ ) . 'helper_funcs.php' );
 
 require_once( plugin_dir_path( __FILE__ ) . 'PL_Plugin.php' );
+require_once( plugin_dir_path( __FILE__ ) . 'PL_Plugin_Loader.php' );
+require_once( plugin_dir_path( __FILE__ ) . 'PL_Plugin_i18n.php' );
 require_once( plugin_dir_path( __FILE__ ) . 'PL_Template_Include.php' );
 require_once( plugin_dir_path( __FILE__ ) . 'PL_Recordable.php' );
 require_once( plugin_dir_path( __FILE__ ) . 'PL_Validatable.php' );

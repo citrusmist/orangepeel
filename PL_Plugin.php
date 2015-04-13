@@ -1,7 +1,13 @@
 <?php 
 
 /**
- * 
+ * General plugin class. 
+ *
+ * This class imposes a singleton pattern on classes which extend it. Only one 
+ * instance of a derived class should be able to be instantiated at time.
+ *
+ * Maintains a unique identifier of plugin as well as the current version 
+ * of the plugin. Provides an interface for instantiating modules.
  */
 abstract class PL_Plugin {
 	
@@ -42,38 +48,36 @@ abstract class PL_Plugin {
 	 */
 	protected $version;
 
+
 	/**
-	 * Return an instance of this class.
+	 * The array of modules registered with this plugin.
 	 *
-	 * @since     1.0.0
-	 *
-	 * @return    object    A single instance of this class.
+	 * @since    1.0.0
+	 * @access   protected
+	 * @var      array    $modules    The modules this plugin consists of
 	 */
-	public static function get_instance() {
+	protected $modules;
 
-		if( !property_exists( get_called_class(), 'instance' ) ) {
-			error_log( get_called_class() . ' is missing a $instace static property' );
-			return;
-		}
 
-		// If the static instance hasn't been set, set it now.
-		if ( null == static::$instance ) {
-			static::$instance = new static;
-		}
+	public function __construct() {
+		
+		$this->loader = new PL_Plugin_Loader();
 
-		return static::$instance;
+		$this->set_locale();
+		$this->load_modules();
 	}
 
 	public function get_plugindir_path() {
-	
-		if ( empty( $this->pluginroot_path ) ) {
-			//remove trailing slash
-			$path = rtrim( plugin_dir_path( __FILE__ ), '/' );
 
-			//remove 2 folder depths
+		if ( empty( $this->plugindir_path ) ) {
+			$reflector = new ReflectionClass( get_called_class() );
+			//remove trailing slash
+
+			$path = rtrim( plugin_dir_path( $reflector->getFileName() ), '/' );
+
+			//remove a folder depth
 			$path = substr( $path, 0, strripos( $path, '/' ) + 1 );
-			$path = rtrim( $path, '/' );
-			$this->plugindir_path = substr( $path, 0, strripos( $path, '/' ) + 1 );
+			$this->plugindir_path = rtrim( $path, '/' );
 		}
 
 		return $this->plugindir_path;
@@ -87,7 +91,7 @@ abstract class PL_Plugin {
 	 * @return    Path to root directory of the plugin
 	 */
 	public static function get_path() {
-		return static::get_instance()->get_plugindir_path();
+		return $this->get_plugindir_path();
 	}
 
 	public static function add_action_path( $slug, $action, $path = '' ) {
@@ -121,6 +125,34 @@ abstract class PL_Plugin {
 		return $path;
 	}
 
+	protected function register_modules( $mods ) {
+		if( is_array( $mods ) ) {
+			$this->modules = $mods;
+		} else if (is_string( $mods ) ) {
+			$$this->modules = array( $mods );
+		}
+	}
+
+	protected function add_module( $mod ) {
+
+		if ( !is_string( $mod ) ) {
+			return  false;
+			//TODO throw exception maybe or something
+		}
+
+		if( is_array( $modules ) ) {
+			$this->modules[] = $mod;
+		} else {
+			$this->modules = array( $mod );
+		}
+	}
+
+	protected function load_modules() {
+		foreach( $this->modules as $module ) {
+			# code...
+		}
+	}
+
 	/**
 	 * Return the plugin slug.
 	 *
@@ -133,7 +165,7 @@ abstract class PL_Plugin {
 	}
 
 
-	public static function get_slug(){
+	public static function get_slug() {
 		return self::get_instance()->get_plugin_slug();
 	}
 
@@ -166,5 +198,37 @@ abstract class PL_Plugin {
 	 */
 	public function get_version() {
 		return $this->version;
+	}
+
+	/**
+	 * Run the loader to execute all of the hooks with WordPress.
+	 *
+	 * @since    0.0.1
+	 */
+	public function run() {
+		$this->loader->run();
+		$this->load_modules();
+	}
+
+	/**
+	 * Define the locale for this plugin for internationalization.
+	 *
+	 * Uses the SS_Shows_i18n class in order to set the domain and to register the hook
+	 * with WordPress.
+	 *
+	 * @since    0.0.1
+	 * @access   private
+	 */
+	private function set_locale() {
+
+		log_me( "namespace" );
+		log_me( __NAMESPACE__ );
+
+		$plugin_i18n = new PL_Plugin_i18n();
+		$plugin_i18n->set_domain( $this->get_plugin_name() );
+		$plugin_i18n->set_path( $this->get_plugindir_path() );
+
+		$this->loader->add_action( 'plugins_loaded', $plugin_i18n, 'load_plugin_textdomain' );
+
 	}
 }
