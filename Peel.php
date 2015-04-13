@@ -22,6 +22,7 @@ namespace Peel;
 require_once( plugin_dir_path( __FILE__ ) . 'helper_funcs.php' );
 
 require_once( plugin_dir_path( __FILE__ ) . 'PL_Plugin.php' );
+require_once( plugin_dir_path( __FILE__ ) . 'PL_Plugin_Factory.php' );
 require_once( plugin_dir_path( __FILE__ ) . 'PL_Plugin_Loader.php' );
 require_once( plugin_dir_path( __FILE__ ) . 'PL_Plugin_i18n.php' );
 require_once( plugin_dir_path( __FILE__ ) . 'PL_Template_Include.php' );

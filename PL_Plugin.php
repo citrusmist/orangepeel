@@ -221,9 +221,6 @@ abstract class PL_Plugin {
 	 */
 	private function set_locale() {
 
-		log_me( "namespace" );
-		log_me( __NAMESPACE__ );
-
 		$plugin_i18n = new PL_Plugin_i18n();
 		$plugin_i18n->set_domain( $this->get_plugin_name() );
 		$plugin_i18n->set_path( $this->get_plugindir_path() );
