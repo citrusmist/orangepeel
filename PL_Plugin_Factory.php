@@ -23,7 +23,9 @@ abstract class PL_Plugin_Factory {
 	public function __construct() {}
 
 	public function bootstrap() {
-		# code...
+		$plugin_class = substr_replace( get_called_class(), '',  strrpos( get_called_class(), '_' ) );
+		$plugin = new $plugin_class();
+		$plugin->run();
 	}
 
 	public function build($value='') {
