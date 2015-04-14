@@ -18,6 +18,20 @@ abstract class PL_Bootstrap {
 	protected $query_map         = array();
 	protected $_relevant_key     = null;
 
+	//Front Controller
+	protected $controller;
+
+	protected $plugin;
+
+	public function __construct( $plugin ) {
+
+		$this->plugin     = $plugin;
+		$this->controller = new PL_Module_Controller( $this );
+
+		$this->init();
+	}
+
+	abstract protected function init();
 
 	public function get_controller_instance( $name ){
 
@@ -260,7 +274,7 @@ abstract class PL_Bootstrap {
 	}
 
 
-	public static function get_plugin_class() {
+/*	public static function get_plugin_class() {
 
 		if( defined ( get_called_class() . '::PLUGIN' ) ){
 			return constant( get_called_class() . '::PLUGIN' );
@@ -271,15 +285,15 @@ abstract class PL_Bootstrap {
 
 		return $prefix . '_Plugin';
 	}
+*/
 
-
-	public static function get_plugin() {
+/*	public static function get_plugin() {
 
 		$class = self::get_plugin_class();
 
 		return call_user_func( array( $class, 'get_instance' ) );
 	}
-
+*/
 
 	public function get_action_path( $action ) {
 

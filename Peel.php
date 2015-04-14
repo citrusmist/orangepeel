@@ -40,5 +40,6 @@ require_once( plugin_dir_path( __FILE__ ) . 'PL_Postmeta_Model.php' );
 require_once( plugin_dir_path( __FILE__ ) . 'PL_Std_Model.php' );
 require_once( plugin_dir_path( __FILE__ ) . 'PL_User.php' );
 require_once( plugin_dir_path( __FILE__ ) . 'PL_View.php' );
+require_once( plugin_dir_path( __FILE__ ) . 'PL_Module_Controller.php' );
 require_once( plugin_dir_path( __FILE__ ) . 'PL_Controller.php' );
 require_once( plugin_dir_path( __FILE__ ) . 'PL_Bootstrap.php' );
