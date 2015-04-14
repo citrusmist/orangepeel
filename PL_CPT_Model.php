@@ -3,7 +3,8 @@
 /**
 * 
 */
-abstract class PL_CPT_Model implements PL_Recordable, PL_Validatable {
+// abstract class PL_CPT_Model implements PL_Recordable, PL_Validatable {
+abstract class PL_CPT_Model extends PL_Model {
 	
 	protected $_post;
 	protected $_post_format;
@@ -11,8 +12,8 @@ abstract class PL_CPT_Model implements PL_Recordable, PL_Validatable {
 	protected $_validatable_props = array();
 	protected $_file_props = null;
 
-	private $_new_record     = false;
-	private $_changed_record = false;
+	protected $_new_record     = false;
+	protected $_changed_record = false;
 
 	protected static $_data_desc = null;
 
@@ -545,7 +546,7 @@ abstract class PL_CPT_Model implements PL_Recordable, PL_Validatable {
 
 		return $this->_validatable_props;
 	}
-
+/*
 	public static function __callStatic( $name, $arguments ) {
 
 		if( strpos( $name, 'find_by_') !== FALSE ){
@@ -553,5 +554,5 @@ abstract class PL_CPT_Model implements PL_Recordable, PL_Validatable {
 			$prop = str_replace( 'find_by_' , '', $name );
 			return static::find_by( $prop, $arguments[0] );
 		}
-	}
+	}*/
 }
