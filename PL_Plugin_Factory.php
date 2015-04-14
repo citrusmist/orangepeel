@@ -9,7 +9,7 @@ abstract class PL_Plugin_Factory {
 	 *
 	 * @var      array
 	 */
-	protected $modules;
+	protected $modules = array();
 
 	/**
 	 * Holds path to root directory of plugin
@@ -22,15 +22,12 @@ abstract class PL_Plugin_Factory {
 
 	public function __construct() {}
 
-	public function bootstrap() {
+	public function bootstrap( $version ) {
+
 		$plugin_class = substr_replace( get_called_class(), '',  strrpos( get_called_class(), '_' ) );
-		$plugin = new $plugin_class();
-		$plugin->run();
+		$plugin = new $plugin_class( $version, $this->plugindir_path, $this->modules );
 	}
 
-	public function build($value='') {
-		
-	}
 
 	/**
 	 * Return an instance of this class. Registers autoloader responsible for
@@ -40,9 +37,18 @@ abstract class PL_Plugin_Factory {
 	 *
 	 * @param     array    Array of module name strings
 	 */
-	public function register_modules( $mods ) {
-		//TODO: Maybe check that module folder exists
-		$this->modules = $mods;
+	public function register_modules( $modules ) {
+
+		foreach ( $modules as $module ) {
+
+			$class = '\\' . $module . '\Bootstrap';
+
+			if( class_exists( $class ) ) {
+				$this->modules[$module] = $class;
+			} else {
+				error_log( "Could not register module {$module} because it doesn't have a Bootstrap class" );
+			}
+		}
 	}
 
 
@@ -58,18 +64,17 @@ abstract class PL_Plugin_Factory {
 		
 		$instance  = static::get_instance();
 		$mods      = $instance->get_modules();
-		$className = substr_replace( get_called_class(), '_Activator',  strrpos( get_called_class(), '_' ) );
+		$class     = substr_replace( get_called_class(), '_Activator',  strrpos( get_called_class(), '_' ) );
 		
 		//Plugin deactivator
-		if( method_exists( $className, 'activate' ) ) {
-			call_user_func( array( $className, 'activate' ) );
+		if( method_exists( $class, 'activate' ) ) {
+			call_user_func( array( $class, 'activate' ) );
 		}
 
-		foreach ( $mods as $mod ) {
-			$ns = '\\' . $mod;
+		foreach ( $mods as $name => $class ) {
 
-			if( method_exists( $ns . '\Bootstrap', 'activate' ) ) {
-				call_user_func( array( $ns . '\Bootstrap', 'activate' ) );
+			if( method_exists( $class, 'activate' ) ) {
+				call_user_func( array( $class, 'activate' ) );
 			}
 		}
 	}
@@ -86,19 +91,18 @@ abstract class PL_Plugin_Factory {
 
 		$instance  = static::get_instance();
 		$mods      = $instance->get_modules();
-		$className = substr_replace( get_called_class(), '_Deactivator',  strrpos( get_called_class(), '_' ) );
+		$class     = substr_replace( get_called_class(), '_Deactivator',  strrpos( get_called_class(), '_' ) );
 
 		//Plugin deactivator
-		if( method_exists( $className, 'deactivate' ) ) {
-			call_user_func( array( $className, 'deactivate' ) );
+		if( method_exists( $class, 'deactivate' ) ) {
+			call_user_func( array( $class, 'deactivate' ) );
 		}
 		
 		//Module deactivators
-		foreach ( $mods as $mod ) {
-			$ns = '\\' . $mod;
+		foreach ( $mods as $name => $class ) {
 
-			if( method_exists( $ns . '\Bootstrap', 'deactivate' ) ) {
-				call_user_func( array( $ns . '\Bootstrap', 'deactivate' ) );
+			if( method_exists( $class, 'deactivate' ) ) {
+				call_user_func( array( $class, 'deactivate' ) );
 			}
 		}
 	}
@@ -114,15 +118,13 @@ abstract class PL_Plugin_Factory {
 	 *
 	 * @param     string    Name of class to be loaded
 	 */
-	protected function autoloader( $className ) {
+	protected function autoloader( $class ) {
 
-		log_me( __METHOD__ );
-
-		if( stripos( $className, '\\' ) ) {
-			$path = str_replace( '\\', '/', $className );
+		if( stripos( $class, '\\' ) ) {
+			$path = str_replace( '\\', '/', $class );
 			$path = $this->get_plugindir_path() . '/' . $path . '.php';
 		} else {
-			$path = strtolower( str_replace( '_', '-', $className ) );
+			$path = strtolower( str_replace( '_', '-', $class ) );
 			$path = $this->get_plugindir_path() . '/includes/class-' . $path . '.php';
 		}
 
@@ -134,6 +136,9 @@ abstract class PL_Plugin_Factory {
 		return false;
 	}
 
+	/**
+	 * Returns absolute path to the plugin folder without the trailing slash.
+	 */
 	public function get_plugindir_path() {
 
 		if ( empty( $this->plugindir_path ) ) {
@@ -152,7 +157,7 @@ abstract class PL_Plugin_Factory {
 
 	/**
 	 * Return an instance of this class. Registers autoloader responsible for
-	 * loading of module files
+	 * loading of module files and plugin activation and deactivation hooks.
 	 *
 	 * @since     1.0.0
 	 *
@@ -168,10 +173,10 @@ abstract class PL_Plugin_Factory {
 		// If the static instance hasn't been set, set it now.
 		if ( null == static::$instance ) {
 			static::$instance = new static;
-			spl_autoload_register( array( static::$instance, 'autoloader' ) );
 			$reflector = new ReflectionClass( get_called_class() );
 
-
+			spl_autoload_register( array( static::$instance, 'autoloader' ) );
+			
 			register_activation_hook( $reflector->getFileName(), array( get_called_class(), 'activate' ) );
 			register_deactivation_hook( $reflector->getFileName(), array( get_called_class(), 'deactivate' ) );
 		}

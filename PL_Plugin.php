@@ -21,6 +21,16 @@ abstract class PL_Plugin {
 	 */
 	protected $loader;
 
+
+	/**
+	 * Registry keeping track of all the modules instantiated by the plugin
+	 *
+	 * @since    1.0.0
+	 * @access   protected
+	 * @var      \PL_Module_Registry    $registry    Maintains and registers all hooks for the plugin.
+	 */
+	protected $registry;
+
 	/**
 	 * Holds path to root directory of plugin
 	 *
@@ -59,27 +69,17 @@ abstract class PL_Plugin {
 	protected $modules;
 
 
-	public function __construct() {
+	public function __construct( $version, $plugindir_path, array $modules = array() ) {
 		
-		$this->loader = new PL_Plugin_Loader();
+		$this->plugindir_path = $plugindir_path;
+		$this->loader         = new PL_Plugin_Loader();
+		$this->registry       = $this->load_modules( $modules );
 
 		$this->set_locale();
-		$this->load_modules();
+		$this->loader->run();
 	}
 
 	public function get_plugindir_path() {
-
-		if ( empty( $this->plugindir_path ) ) {
-			$reflector = new ReflectionClass( get_called_class() );
-			//remove trailing slash
-
-			$path = rtrim( plugin_dir_path( $reflector->getFileName() ), '/' );
-
-			//remove a folder depth
-			$path = substr( $path, 0, strripos( $path, '/' ) + 1 );
-			$this->plugindir_path = rtrim( $path, '/' );
-		}
-
 		return $this->plugindir_path;
 	}
 
@@ -125,32 +125,16 @@ abstract class PL_Plugin {
 		return $path;
 	}
 
-	protected function register_modules( $mods ) {
-		if( is_array( $mods ) ) {
-			$this->modules = $mods;
-		} else if (is_string( $mods ) ) {
-			$$this->modules = array( $mods );
-		}
-	}
 
-	protected function add_module( $mod ) {
+	private function load_modules( $modules ) {
 
-		if ( !is_string( $mod ) ) {
-			return  false;
-			//TODO throw exception maybe or something
+		$reg = new PL_Module_Registry();
+
+		foreach( $modules as $name => $module ) {
+			$reg->set( $name, new $module( $this ) );
 		}
 
-		if( is_array( $modules ) ) {
-			$this->modules[] = $mod;
-		} else {
-			$this->modules = array( $mod );
-		}
-	}
-
-	protected function load_modules() {
-		foreach( $this->modules as $module ) {
-			# code...
-		}
+		return $reg;
 	}
 
 	/**
@@ -173,10 +157,20 @@ abstract class PL_Plugin {
 	 * The name of the plugin used to uniquely identify it within the context of
 	 * WordPress and to define internationalization functionality.
 	 *
+	 * If plugin name isn't explicitly set it is inferred from the class name.
+	 *
 	 * @since     1.0.0
 	 * @return    string    The name of the plugin.
 	 */
 	public function get_plugin_name() {
+
+		if( empty( $this->plugin_name ) ) {
+			$name = explode( '_', strtolower( get_called_class() ) );
+			array_shift( $name );
+			$name = implode( '-', $name );
+			$this->plugin_name = $name;
+		}
+		
 		return $this->plugin_name;
 	}
 
@@ -198,16 +192,6 @@ abstract class PL_Plugin {
 	 */
 	public function get_version() {
 		return $this->version;
-	}
-
-	/**
-	 * Run the loader to execute all of the hooks with WordPress.
-	 *
-	 * @since    0.0.1
-	 */
-	public function run() {
-		$this->loader->run();
-		$this->load_modules();
 	}
 
 	/**
