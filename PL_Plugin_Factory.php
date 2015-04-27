@@ -26,6 +26,7 @@ abstract class PL_Plugin_Factory {
 
 		$plugin_class = substr_replace( get_called_class(), '',  strrpos( get_called_class(), '_' ) );
 		$plugin = new $plugin_class( $version, $this->plugindir_path, $this->modules );
+		PL_Front_Controller::get_instance()->register_actions( $this->modules );
 	}
 
 
