@@ -24,14 +24,14 @@ abstract class PL_Plugin_Factory {
 
 	public function bootstrap( $version ) {
 
+		$route = PL_Route::get_instance(); 
 		$plugin_class = substr_replace( get_called_class(), '',  strrpos( get_called_class(), '_' ) );
-		$plugin = new $plugin_class( $version, $this->plugindir_path, $this->modules );
+		$plugin = new $plugin_class( $version, $this->plugindir_path, $this->modules, $route );
 
 		//This should only be called once all the plugins have been instantiated and register their routes
 		$fc     = PL_Front_Controller::get_instance();
 
 		//Don't acutally need this, we are only calling it so that it is able to add_action to 'init' hook
-		$router = PL_Route::get_instance(); 
 	}
 
 

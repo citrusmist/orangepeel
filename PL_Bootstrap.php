@@ -23,9 +23,11 @@ abstract class PL_Bootstrap {
 
 	protected $plugin;
 
-	public function __construct( $plugin ) {
+	protected $route;
 
+	public function __construct( $route ) {
 
+		$this->route = $route;
 		//README: Instead of a Module Controller should we just have a singleton
 		//front controller which we can configure withing the module bootstrap, 
 		//so that dependency is inverted. We could just pass the endpoint, module slug,

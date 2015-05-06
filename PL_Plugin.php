@@ -67,12 +67,14 @@ abstract class PL_Plugin {
 	 * @var      array    $modules    The modules this plugin consists of
 	 */
 	protected $modules;
+	
+	protected $route;
 
-
-	public function __construct( $version, $plugindir_path, array $modules = array() ) {
+	public function __construct( $version, $plugindir_path, array $modules = array(), $route ) {
 		
 		$this->plugindir_path = $plugindir_path;
 		$this->loader         = new PL_Plugin_Loader();
+		$this->route          = $route;
 		$this->registry       = $this->load_modules( $modules );
 
 		$this->set_locale();
@@ -131,7 +133,7 @@ abstract class PL_Plugin {
 		$reg = new PL_Module_Registry();
 
 		foreach( $modules as $name => $module ) {
-			$reg->set( $name, new $module( $this ) );
+			$reg->set( $name, new $module( $this->route ) );
 		}
 
 		return $reg;
