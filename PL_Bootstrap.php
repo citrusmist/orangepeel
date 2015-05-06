@@ -18,7 +18,7 @@ abstract class PL_Bootstrap {
 	protected $query_map         = array();
 	protected $_relevant_key     = null;
 
-	//Front Controller
+	//Module Controller a la Rails Application Controller
 	protected $controller;
 
 	protected $plugin;
@@ -31,8 +31,8 @@ abstract class PL_Bootstrap {
 		//so that dependency is inverted. We could just pass the endpoint, module slug,
 		//controller(optional) name and action name(options)
 		//If not optional args passed default behaviour assumed
-		$this->plugin     = $plugin;
-		$this->controller = new PL_Module_Controller( $this );
+		// $this->controller = new PL_Module_Controller( $this );
+		// $this->plugin     = $plugin;
 
 		$this->init();
 	}

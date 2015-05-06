@@ -26,7 +26,12 @@ abstract class PL_Plugin_Factory {
 
 		$plugin_class = substr_replace( get_called_class(), '',  strrpos( get_called_class(), '_' ) );
 		$plugin = new $plugin_class( $version, $this->plugindir_path, $this->modules );
-		PL_Front_Controller::get_instance()->register_actions( $this->modules );
+
+		//This should only be called once all the plugins have been instantiated and register their routes
+		$fc     = PL_Front_Controller::get_instance();
+
+		//Don't acutally need this, we are only calling it so that it is able to add_action to 'init' hook
+		$router = PL_Route::get_instance(); 
 	}
 
 

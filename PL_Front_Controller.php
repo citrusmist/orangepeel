@@ -9,9 +9,10 @@ class PL_Front_Controller {
 	
 	private function __construct() {}
 
-	public function get_instance() {
+	public static function get_instance() {
 		if ( ! self::$instance ) {
       self::$instance = new self();
+      //README should this be in the constructor
       self::$instance->register_callbacks();
     }
 
@@ -42,7 +43,6 @@ class PL_Front_Controller {
 			return;
 		}
 
-		$resolver = new \PJ_Action_Resolver();
-		$action   = $resolver->resolve($wp_query);
+		$route = PL_Route::get_instance()->resolve($wp_query);
 	}
 }
