@@ -43,6 +43,16 @@ class PL_Front_Controller {
 			return;
 		}
 
-		$route = PL_Route::get_instance()->resolve($wp_query);
+		$route = PL_Route::get_instance()->resolve( $wp_query );
+		
+		if ( $route == false ) {
+			return;
+		}
+
+		if( class_exists( array_pop( array_values( $route ) ) ) ) {
+
+		}
+
+
 	}
 }

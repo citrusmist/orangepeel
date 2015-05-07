@@ -133,7 +133,7 @@ abstract class PL_Plugin {
 		$reg = new PL_Module_Registry();
 
 		foreach( $modules as $name => $module ) {
-			$reg->set( $name, new $module( $this->route ) );
+			$reg->set( $name, new $module( $this->route, $this ) );
 		}
 
 		return $reg;
