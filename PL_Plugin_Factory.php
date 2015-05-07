@@ -126,13 +126,18 @@ abstract class PL_Plugin_Factory {
 	 */
 	protected function autoloader( $class ) {
 
-		if( stripos( $class, '\\' ) ) {
+		if( stripos( $class, 'controller' ) ) {
+			$module = explode( '\\', $class );
+			
+
+		} elseif( stripos( $class, '\\' ) ) {
 			$path = str_replace( '\\', '/', $class );
 			$path = $this->get_plugindir_path() . '/' . $path . '.php';
+			log_me( $path );
 		} else {
 			$path = strtolower( str_replace( '_', '-', $class ) );
 			$path = $this->get_plugindir_path() . '/includes/class-' . $path . '.php';
-		}
+		} 
 
 		if( file_exists( $path ) ) {
 			require( $path );
