@@ -20,7 +20,7 @@ class PL_Front_Controller {
 	}
 
 	public function register_callbacks() {
-		add_action( 'wp',   array( $this, 'wp' ), 10, 1 );
+		add_action( 'wp', array( $this, 'wp' ), 10, 1 );
 	}
 
 	/*
@@ -49,8 +49,8 @@ class PL_Front_Controller {
 			return;
 		}
 
-		if( class_exists( array_pop( array_values( $route ) ) ) ) {
-
+		if( ! class_exists( $route['action'] ) ) {
+			return;
 		}
 
 

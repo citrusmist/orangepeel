@@ -36,21 +36,32 @@ class PL_Route {
 		add_action( 'init', array( $this, 'register_endpoints' ) );
 	}
 
-	public function resource( $name ) {
-		$this->endpoints[$name] = array();
+	public function resource( $name, $action, $plugin ) {
+		$this->endpoints[$name] = array(
+			'action'  => $action,
+			'plugin'  => $plugin
+		);
 	}
 
-
-	public function get( $name ) {
-		$this->endpoints[$name] = array();
+	public function get( $name, $action, $plugin ) {
+		$this->endpoints[$name] = array(
+			'action'  => $action,
+			'plugin'  => $plugin
+		);
 	}
 
-	public function post( $name ) {
-		$this->endpoints[$name] = array();
+	public function post( $name, $action, $plugin ) {
+		$this->endpoints[$name] = array(
+			'action'  => $action,
+			'plugin'  => $plugin
+		);
 	}
 	
-	public function cpt( $name, $action ) {
-		$this->cpts[$name] = $action;
+	public function cpt( $name, $action, $plugin ) {
+		$this->cpts[$name] = array(
+			'action'  => $action,
+			'plugin'  => $plugin
+		);
 	}
 
 	public function register_endpoints() {
@@ -64,16 +75,26 @@ class PL_Route {
 		if( !empty( $query->query_vars['post_type'] ) 
 			&& $query->query_vars['post_type'] 
 			&& array_key_exists( $query->query_vars['post_type'], $this->cpts ) ) {
-			log_me($query->query_vars);
+			// log_me($query->query_vars);
 
-			$this->current = array( $query->query_vars['post_type'], $this->cpts[$query->query_vars['post_type']] );
+			$this->current = array_merge( 
+				array( 'endpoint' => $query->query_vars['post_type'] ),
+				$this->cpts[$query->query_vars['post_type']] 
+			);
 
 		} else {
 
-			$params = array_intersect_key( $query->query_vars, $this->endpoints );
+			$endpoint = array_intersect_key( $this->endpoints, $query->query_vars );
 
-			if( !empty( $params ) ) {
-				$this->current = $params;
+			if( !empty( $endpoint ) ) {
+				
+				$action   = array_values( $endpoint );
+				$endpoint = array_keys( $endpoint );
+
+				$this->current = array_merge(
+					array( 'endpoint' => $endpoint[0] ),
+					$action[0]
+				);
 			}
 		}
 
