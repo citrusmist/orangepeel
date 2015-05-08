@@ -39,7 +39,7 @@ class PL_Front_Controller {
 
 		global $wp_query;
 		
-		if( !$wp_query->is_main_query() ) {
+		if( ! $wp_query->is_main_query() ) {
 			return;
 		}
 
@@ -49,10 +49,33 @@ class PL_Front_Controller {
 			return;
 		}
 
-		if( ! class_exists( $route['action'] ) ) {
+		$this->load_template( $route );
+	}
+
+	public function load_template( $route ) {
+		
+		if( is_admin() ) {
 			return;
 		}
 
+		$plugin   = \PL_Plugin_Registry::get_instance()->get( $route['plugin'] );
+		//Infer module name from namespace part of classname
+		$module   = strtolower( substr( $route['action'], 0, strrpos( $route['action'], '\\' ) ) );
+		
+		$template = $route['plugin'] . '/' . $module . '/template.php';
+		$fallback = $plugin['instance']->get_plugindir_path() . '/' . $module . '/public/views/template.php';
+		$tinc = new PL_Template_Include( $template, $fallback );
 
+	}
+
+	public function controller_action_exists( $controller_action ) {
+		
+		$controller_action = explode( '#', $controller_action );
+		$controller        = $controller_action[0];
+		$action            = $controller_action[1];
+		
+		log_me( $controller );
+		log_me( $action );
+		return is_callable( $controller, $action );
 	}
 }

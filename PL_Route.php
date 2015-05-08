@@ -71,15 +71,19 @@ class PL_Route {
 	}
 
 	public function resolve( $query ) {
-
-		if( !empty( $query->query_vars['post_type'] ) 
-			&& $query->query_vars['post_type'] 
-			&& array_key_exists( $query->query_vars['post_type'], $this->cpts ) ) {
 			// log_me($query->query_vars);
 
+		if( !empty( $query->query_vars['post_type'] ) ) {
+			
+			if( array_key_exists( $query->query_vars['post_type'], $this->cpts ) ) {
+			 	$path = $query->query_vars['post_type'];
+			} elseif( array_key_exists( \PL_Inflector::pluralize( $query->query_vars['post_type'] ), $this->cpts ) ) {
+				$path = \PL_Inflector::pluralize( $query->query_vars['post_type'] );
+			}
+
 			$this->current = array_merge( 
-				array( 'endpoint' => $query->query_vars['post_type'] ),
-				$this->cpts[$query->query_vars['post_type']] 
+				array( 'path' => $path ),
+				$this->cpts[$path] 
 			);
 
 		} else {
@@ -92,7 +96,7 @@ class PL_Route {
 				$endpoint = array_keys( $endpoint );
 
 				$this->current = array_merge(
-					array( 'endpoint' => $endpoint[0] ),
+					array( 'path' => $endpoint[0] ),
 					$action[0]
 				);
 			}

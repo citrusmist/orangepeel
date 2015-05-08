@@ -35,8 +35,8 @@ class PL_Plugin_Registry extends PL_Registry {
 		}
 
 		$this->_plugins[$plugin->get_name()] = array(
-			'plugin'  => $plugin,
-			'modules' => $modules
+			'instance' => $plugin,
+			'modules'  => $modules
 		);
 	}
 
