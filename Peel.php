@@ -21,11 +21,13 @@ Author URI: http://citrus-mist.com
 // require_once( plugin_dir_path( __FILE__ ) . 'CMView.class.php' );
 require_once( plugin_dir_path( __FILE__ ) . 'helper_funcs.php' );
 
+require_once( plugin_dir_path( __FILE__ ) . 'PL_Registry.php' );
 require_once( plugin_dir_path( __FILE__ ) . 'PL_Plugin.php' );
+require_once( plugin_dir_path( __FILE__ ) . 'PL_Module_Registry.php' );
+require_once( plugin_dir_path( __FILE__ ) . 'PL_Plugin_Registry.php' );
 require_once( plugin_dir_path( __FILE__ ) . 'PL_Plugin_Factory.php' );
 require_once( plugin_dir_path( __FILE__ ) . 'PL_Plugin_Loader.php' );
 require_once( plugin_dir_path( __FILE__ ) . 'PL_Plugin_i18n.php' );
-require_once( plugin_dir_path( __FILE__ ) . 'PL_Module_Registry.php' );
 require_once( plugin_dir_path( __FILE__ ) . 'PL_Template_Include.php' );
 require_once( plugin_dir_path( __FILE__ ) . 'PL_Recordable.php' );
 require_once( plugin_dir_path( __FILE__ ) . 'PL_Validatable.php' );
