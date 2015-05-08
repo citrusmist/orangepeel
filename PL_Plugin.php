@@ -23,15 +23,6 @@ abstract class PL_Plugin {
 
 
 	/**
-	 * Registry keeping track of all the modules instantiated by the plugin
-	 *
-	 * @since    1.0.0
-	 * @access   protected
-	 * @var      \PL_Module_Registry    $registry    Maintains and registers all hooks for the plugin.
-	 */
-	protected $registry;
-
-	/**
 	 * Holds path to root directory of plugin
 	 *
 	 * @since    1.0.0
@@ -45,9 +36,9 @@ abstract class PL_Plugin {
 	 *
 	 * @since    1.0.0
 	 * @access   protected
-	 * @var      string    $plugin_name    The string used to uniquely identify this plugin.
+	 * @var      string    $name    The string used to uniquely identify this plugin.
 	 */
-	protected $plugin_name;
+	protected $name;
 
 	/**
 	 * The current version of the plugin.
@@ -70,12 +61,12 @@ abstract class PL_Plugin {
 	
 	protected $route;
 
-	public function __construct( $version, $plugindir_path, array $modules = array(), $route ) {
+	public function __construct( $version, $plugindir_path, $route ) {
 		
 		$this->plugindir_path = $plugindir_path;
 		$this->loader         = new PL_Plugin_Loader();
 		$this->route          = $route;
-		$this->registry       = $this->load_modules( $modules );
+		// $this->registry       = $this->load_modules( $modules );
 
 		$this->set_locale();
 		$this->loader->run();
@@ -127,16 +118,20 @@ abstract class PL_Plugin {
 		return $path;
 	}
 
+	public function add_post_route( $name, $action ) {
+		$this->route->post( $name, $action, $this->get_name() );
+	}
 
-	private function load_modules( $modules ) {
+	public function add_cpt_route( $name, $action ) {
+		$this->route->cpt( $name, $action, $this->get_name() );
+	}
 
-		$reg = new PL_Module_Registry();
+	public function add_get_route( $name, $action ) {
+		$this->route->get( $name, $action, $this->get_name() );
+	}
 
-		foreach( $modules as $name => $module ) {
-			$reg->set( $name, new $module( $this->route, $this ) );
-		}
-
-		return $reg;
+	public function add_resource_route( $name, $action ) {
+		$this->route->resource( $name, $action, $this->get_name() );
 	}
 
 	/**
@@ -147,7 +142,7 @@ abstract class PL_Plugin {
 	 * @return    Plugin slug variable.
 	 */
 	public function get_plugin_slug() {
-		return $this->get_plugin_name();
+		return $this->get_name();
 	}
 
 
@@ -164,16 +159,16 @@ abstract class PL_Plugin {
 	 * @since     1.0.0
 	 * @return    string    The name of the plugin.
 	 */
-	public function get_plugin_name() {
+	public function get_name() {
 
-		if( empty( $this->plugin_name ) ) {
+		if( empty( $this->name ) ) {
 			$name = explode( '_', strtolower( get_called_class() ) );
 			array_shift( $name );
 			$name = implode( '-', $name );
-			$this->plugin_name = $name;
+			$this->name = $name;
 		}
 		
-		return $this->plugin_name;
+		return $this->name;
 	}
 
 	/**
@@ -208,7 +203,7 @@ abstract class PL_Plugin {
 	private function set_locale() {
 
 		$plugin_i18n = new PL_Plugin_i18n();
-		$plugin_i18n->set_domain( $this->get_plugin_name() );
+		$plugin_i18n->set_domain( $this->get_name() );
 		$plugin_i18n->set_path( $this->get_plugindir_path() );
 
 		$this->loader->add_action( 'plugins_loaded', $plugin_i18n, 'load_plugin_textdomain' );
