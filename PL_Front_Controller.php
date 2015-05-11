@@ -20,7 +20,8 @@ class PL_Front_Controller {
 	}
 
 	public function register_callbacks() {
-		add_action( 'wp', array( $this, 'wp' ), 10, 1 );
+		add_action( 'wp', array( $this, 'wp' ) );
+		add_action( 'peel_view', array( $this, 'render_view' ) );
 	}
 
 	/*
@@ -58,7 +59,7 @@ class PL_Front_Controller {
 			return;
 		}
 
-		$plugin   = \PL_Plugin_Registry::get_instance()->get( $route['plugin'] );
+		$plugin   = PL_Plugin_Registry::get_instance()->get( $route['plugin'] );
 		//Infer module name from namespace part of classname
 		$module   = strtolower( substr( $route['action'], 0, strrpos( $route['action'], '\\' ) ) );
 		
@@ -68,14 +69,33 @@ class PL_Front_Controller {
 
 	}
 
+	public function render_view() {
+
+		log_me( __METHOD__ );
+
+		$route = PL_Route::get_instance()->get_current();
+
+		$controller_action = explode( '#', $route['action'] );
+		$controller        = $controller_action[0];
+		$action            = $controller_action[1];
+
+		if( is_callable( $controller, $action ) ) {
+			$controller = new $controller();
+			$controller->$action();
+			echo $controller->get_render();
+		} else {
+			log_me('bastard');
+		}
+
+	}
+
 	public function controller_action_exists( $controller_action ) {
 		
 		$controller_action = explode( '#', $controller_action );
 		$controller        = $controller_action[0];
 		$action            = $controller_action[1];
 		
-		log_me( $controller );
-		log_me( $action );
+		
 		return is_callable( $controller, $action );
 	}
 }

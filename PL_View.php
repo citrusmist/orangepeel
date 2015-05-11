@@ -10,7 +10,7 @@ class PL_View {
 	}
 
 	public function render(){
-		return self::render( $this->_path, $this->_data );
+		return self::render_tmpl( $this->_path, $this->_data );
 	}
 
 	public function set_path( $view_path ){

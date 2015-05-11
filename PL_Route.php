@@ -109,4 +109,7 @@ class PL_Route {
 		}
 	}
 
+	public function get_current() {
+		return $this->current;
+	}
 }
