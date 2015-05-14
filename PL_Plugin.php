@@ -83,7 +83,7 @@ abstract class PL_Plugin {
 	 *
 	 * @return    Path to root directory of the plugin
 	 */
-	public static function get_path() {
+	public function get_path() {
 		return $this->get_plugindir_path();
 	}
 

@@ -71,7 +71,7 @@ class PL_Route {
 	}
 
 	public function resolve( $query ) {
-			// log_me($query->query_vars);
+		log_me($query->query_vars);
 
 		if( !empty( $query->query_vars['post_type'] ) ) {
 			

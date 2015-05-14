@@ -6,6 +6,8 @@
 class PL_Front_Controller {
 
 	protected static $instance;
+
+	protected $params;
 	
 	private function __construct() {}
 
@@ -20,7 +22,7 @@ class PL_Front_Controller {
 	}
 
 	public function register_callbacks() {
-		add_action( 'wp', array( $this, 'wp' ) );
+		add_action( 'parse_request', array( $this, 'parse_request' ) );
 		add_action( 'peel_view', array( $this, 'render_view' ) );
 	}
 
@@ -36,17 +38,21 @@ class PL_Front_Controller {
 	 * Subsequent actions need only check this and get data this way rather than 
 	 * always querying get_query_var
 	 */
-	public function wp( $wp ) {
+	public function parse_request( $req ) {
 
-		global $wp_query;
+		// global $wp_query;
 		
-		if( ! $wp_query->is_main_query() ) {
-			return;
-		}
+		// if( ! $wp_query->is_main_query() ) {
+		// 	return;
+		// }
+		log_me( $req );
+		log_me( $_GET );
+		log_me( $_POST );
 
-		$route = PL_Route::get_instance()->resolve( $wp_query );
-		
-		if ( $route == false ) {
+		$route = PL_Route::get_instance()->resolve( $req->query_vars );
+		$this->params = $req->query_vars;
+
+		if ( $route == false ) { 
 			return;
 		}
 
@@ -65,28 +71,25 @@ class PL_Front_Controller {
 		
 		$template = $route['plugin'] . '/' . $module . '/template.php';
 		$fallback = $plugin['instance']->get_plugindir_path() . '/' . $module . '/public/views/template.php';
-		$tinc = new PL_Template_Include( $template, $fallback );
+		$tinc     = new PL_Template_Include( $template, $fallback );
 
 	}
 
 	public function render_view() {
 
-		log_me( __METHOD__ );
-
-		$route = PL_Route::get_instance()->get_current();
-
+		$route             = PL_Route::get_instance()->get_current();
+		$plugin            = PL_Plugin_Registry::get_instance()->get( $route['plugin'] );
 		$controller_action = explode( '#', $route['action'] );
 		$controller        = $controller_action[0];
 		$action            = $controller_action[1];
 
 		if( is_callable( $controller, $action ) ) {
-			$controller = new $controller();
-			$controller->$action();
-			echo $controller->get_render();
+			$controller = new $controller( $plugin['instance']->get_path() );
+			$controller->$action( $this->params );
+			echo $controller->render();
 		} else {
 			log_me('bastard');
 		}
-
 	}
 
 	public function controller_action_exists( $controller_action ) {
@@ -94,7 +97,6 @@ class PL_Front_Controller {
 		$controller_action = explode( '#', $controller_action );
 		$controller        = $controller_action[0];
 		$action            = $controller_action[1];
-		
 		
 		return is_callable( $controller, $action );
 	}
