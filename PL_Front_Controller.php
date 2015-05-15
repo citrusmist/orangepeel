@@ -38,23 +38,23 @@ class PL_Front_Controller {
 	 * Subsequent actions need only check this and get data this way rather than 
 	 * always querying get_query_var
 	 */
-	public function parse_request( $req ) {
+	public function parse_request( $wp ) {
 
 		// global $wp_query;
 		
 		// if( ! $wp_query->is_main_query() ) {
 		// 	return;
 		// }
-		log_me( $req );
-		log_me( $_GET );
-		log_me( $_POST );
-
-		$route = PL_Route::get_instance()->resolve( $req->query_vars );
-		$this->params = $req->query_vars;
+		// log_me( $req );
+		// log_me( $_GET );
+		// log_me( $_SERVER );
+		$route = PL_Route::get_instance()->resolve( $wp );
 
 		if ( $route == false ) { 
 			return;
 		}
+
+		parse_str( stripslashes( $wp->matched_query ), $this->params );
 
 		$this->load_template( $route );
 	}
