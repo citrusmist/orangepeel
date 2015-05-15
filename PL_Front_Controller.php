@@ -84,8 +84,8 @@ class PL_Front_Controller {
 		$action            = $controller_action[1];
 
 		if( is_callable( $controller, $action ) ) {
-			$controller = new $controller( $plugin['instance']->get_path() );
-			$controller->$action( $this->params );
+			$controller = new $controller( $this->params, $plugin['instance']->get_path() );
+			$controller->$action();
 			echo $controller->render();
 		} else {
 			log_me('bastard');

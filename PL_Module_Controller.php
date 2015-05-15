@@ -10,8 +10,9 @@ abstract class PL_Module_Controller {
 	protected $errorlist_path = null;
 	protected $last_render    = null;
 
-	public function __construct( $plugin_path ) {
+	public function __construct( $params, $plugin_path ) {
 		// $this->module = $module;
+		$this->params      = $params;
 		$this->plugin_path = $plugin_path;
 		$this->view        = new PL_View();
 	}
