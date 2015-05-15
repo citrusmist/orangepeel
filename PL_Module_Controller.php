@@ -17,7 +17,7 @@ abstract class PL_Module_Controller {
 		$this->view        = new PL_View();
 	}
 
-	public function __call( $name, $arguments ){
+	public function __call( $name, $arguments ) {
 
 		if ( !method_exists( $this, $name . '_action' ) ){
 			return $name . " method doesn't exist!";
@@ -35,16 +35,16 @@ abstract class PL_Module_Controller {
 		}
 	}
 
-	public function render(){
+	public function render() {
 		$this->last_render = $this->view->render();
 		return $this->last_render;
 	}
 
-	public function get_render(){
+	public function get_render() {
 		return $this->last_render;	
 	}
 
-	protected function module_view_path( $filename ){
+	protected function module_view_path( $filename ) {
 		
 		$r_class   = new ReflectionClass( get_called_class() );
 		$view_path = $this->plugin_path . '/' . strtolower( $r_class->getNamespaceName() );
@@ -58,7 +58,7 @@ abstract class PL_Module_Controller {
 		return $view_path;
 	}
 
-	protected function set_view_file( $filename ){
+	protected function set_view_file( $filename ) {
 		
 		$plugin_path = $this->module_view_path( $filename );
 

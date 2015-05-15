@@ -133,46 +133,6 @@ class PL_Route {
 		
 		return $matched_route;
 
-		//match request to either a built-in resource 
-		//or a peel one
-
-		//extract the parameters passed
-		//merge with any _GET or _POST parameters
-
-		if( !empty( $query->query_vars['post_type'] ) ) {
-			
-			if( array_key_exists( $query->query_vars['post_type'], $this->cpts ) ) {
-			 	$path = $query->query_vars['post_type'];
-			} elseif( array_key_exists( \PL_Inflector::pluralize( $query->query_vars['post_type'] ), $this->cpts ) ) {
-				$path = \PL_Inflector::pluralize( $query->query_vars['post_type'] );
-			}
-
-			$this->current = array_merge( 
-				array( 'path' => $path ),
-				$this->cpts[$path] 
-			);
-
-		} else {
-
-			$endpoint = array_intersect_key( $this->endpoints, $query->query_vars );
-
-			if( !empty( $endpoint ) ) {
-				
-				$action   = array_values( $endpoint );
-				$endpoint = array_keys( $endpoint );
-
-				$this->current = array_merge(
-					array( 'path' => $endpoint[0] ),
-					$action[0]
-				);
-			}
-		}
-
-		if( empty( $this->current ) ) {
-			return false;
-		} else {
-			return $this->current;
-		}
 	}
 
 
