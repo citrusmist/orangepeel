@@ -68,7 +68,7 @@ class PL_Route {
 		);
 	}
 	
-	public function cpt( $name, $action, $qv, $plugin ) {
+	public function cpt_builtin( $name, $action, $qv, $plugin ) {
 
 		//README CPT should be registered automatically based on paramteres 
 		//the cpt is registred with e.g. publicly_queriable etc.
@@ -79,7 +79,8 @@ class PL_Route {
 			'action'  => $action,
 			'plugin'  => $plugin,
 			'qv'      => $qv,
-			'method'  => 'GET'
+			'method'  => 'GET',
+			'rewrite' => '_builtin'
 		);
 	}
 
@@ -118,27 +119,60 @@ class PL_Route {
 		log_me($wp);
 		$matched_route = false;
 
-		if( !empty( $wp->query_vars ) ) {
-
-			//exclude routes where a cpt or request method don't match query_vars
-			$possibilities = array_filter( $this->cpts, function( $val ) {
-					$possibility = $val['qv']['post_type'] == $wp->query_vars 
-						&& $val['method'] == $_SERVER['REQUEST_METHOD'];
-
-					return $possibility;
-				}
-			);
-
-			array_reduce( $possibilities, function( $carry, $poss ) {
-				$poss['qv']
-			});
-
-			foreach( $possibilities as $route => $props ) {
-				if( $props ) {
-
-				}
-			}
+		if( empty( $wp->query_vars ) ) {
+			$mathced_route = $this->resolve_custom( $wp );
+		} else {
+			$matched_route = $this->resolve_cpt( $wp );
 		}
+
+		if( !empty( $matched_route ) ) {
+			$this->current = $matched_route;
+		}
+
+		log_me( $matched_route );
+
+		return $matched_route;
+	}
+
+	protected function resolve_cpt( $wp ) {
+		
+		$matched_route = false;
+
+		log_me( __METHOD__ );
+		
+		//exclude routes where a cpt or request method don't match query_vars
+		$possibilities = array_filter( 
+			$this->cpts, 
+			function( $val ) use( &$wp ) {
+				
+				$possibility = isset( $wp->query_vars['post_type'] )
+					&& $val['qv']['post_type'] == $wp->query_vars['post_type'] 
+					&& $val['method'] == $_SERVER['REQUEST_METHOD'];
+
+				return $possibility;
+			}
+		);
+
+		foreach( $possibilities as $route => $props ) {
+			
+			$old = array();
+			$new = array_intersect_key( $props['qv'], $wp->query_vars );
+
+			if( $matched_route ) {
+				$old = array_intersect_key( $props['qv'], $wp->query_vars );
+			}
+
+			if( count( $new ) > count( $old ) ) {
+				$matched_route = $possibilities[$route];
+			} 
+		}
+
+		return $matched_route;
+	}
+
+	protected function resolve_custom( $wp ) {
+		
+		$matched_route = false;
 
 		$possibilities = array_filter( $this->endpoints, function( $val ) {
 				return $val['method'] == $_SERVER['REQUEST_METHOD'];
@@ -151,10 +185,6 @@ class PL_Route {
 			}
 		}	
 
-		if( $matched_route != false ) {
-			$this->current = $matched_route;
-		} 
-		
 		return $matched_route;
 	}
 

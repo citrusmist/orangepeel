@@ -12,12 +12,6 @@
 
 abstract class PL_Bootstrap {
 
-	protected $public_controller = null;
-	protected $admin_controller  = null;
-	protected $dispatcher        = null;
-	protected $query_map         = array();
-	protected $_relevant_key     = null;
-
 	//Module Controller a la Rails Application Controller
 	protected $controller;
 
@@ -58,20 +52,6 @@ abstract class PL_Bootstrap {
 		return $slug;
 	}
 
-	public static function get_plugin_prop( $prop ) {
-
-		$class = self::get_plugin_class();
-		$value = NULL;
-
-		if( defined( $class . '::' . strtoupper( $prop ) ) ) {
-			$value = constant( $class . '::' . strtoupper( $prop ) );
-		} else if( method_exists( $class, 'get_' . strtolower( $prop ) ) ) {
-			$value = call_user_func( array( $class, 'get_' . $prop ) );
-		}
-
-		return $value;
-	}
-
 	public function register_cpts() {
 
 		foreach ($this->cpts as $cpt => $args) {
@@ -89,7 +69,7 @@ abstract class PL_Bootstrap {
 			return;
 		}
 
-		$this->plugin->add_cpt_route( 
+		$this->plugin->add_cpt_builtin_route( 
 			$args['rewrite']['slug'] . '/{:slug}', 
 			$actions['show'], 
 			array_merge( $qv, array(
@@ -98,7 +78,7 @@ abstract class PL_Bootstrap {
 		) );
 
 		if( $args['has_archive'] !== false ) {
-			$this->plugin->add_cpt_route( 
+			$this->plugin->add_cpt_builtin_route( 
 				$args['has_archive'] === true ? $slug : $args['has_archive'], 
 				$actions['index'], 
 				$qv 

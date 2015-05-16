@@ -87,36 +87,6 @@ abstract class PL_Plugin {
 		return $this->get_plugindir_path();
 	}
 
-	public static function add_action_path( $slug, $action, $path = '' ) {
-		
-		if( !property_exists( get_called_class(), 'action_paths' ) ) {
-			error_log( get_called_class() . '::$action_path static property isn\'t declared' );
-			return;
-		}
-
-		if( empty( $path ) ) {
-			$path = '/' . $action;
-		}
-
-		static::$action_paths[$slug][$action] = $path;
-	}
-
-	public static function get_action_path( $slug, $action ) {
-
-		if( !property_exists( get_called_class(), 'action_paths' ) ) {
-			error_log( get_called_class() . '::$action_path static property isn\'t declared' );
-			return;
-		}
-
-		if( !isset( static::$action_paths[$slug] ) ) {
-			return '';
-		} elseif( !isset( static::$action_paths[$slug][$action] ) ) {
-			return '';
-		}
-
-		$path = site_url( static::$action_paths[$slug][$action] );
-		return $path;
-	}
 
 	public function add_post_route( $name, $action ) {
 		$this->route->post( $name, $action, $this->get_name() );
@@ -131,8 +101,12 @@ abstract class PL_Plugin {
 		$this->route->resource( $name, $action, $this->get_name() );
 	}
 
-	public function add_cpt_route( $name, $action, $qv ) {
+/*	public function add_cpt_route( $name, $action, $qv ) {
 		$this->route->cpt( $name, $action, $qv, $this->get_name() );
+	}*/
+
+	public function add_cpt_builtin_route( $name, $action, $qv ) {
+		$this->route->cpt_builtin( $name, $action, $qv, $this->get_name() );
 	}
 	/**
 	 * Return the plugin slug.
