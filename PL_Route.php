@@ -68,12 +68,22 @@ class PL_Route {
 		);
 	}
 	
-	public function cpt( $name, $action, $plugin ) {
+	public function cpt( $name, $cpt, $action, $plugin ) {
+
+		//README CPT should be registered automatically based on paramteres 
+		//the cpt is registred with e.g. publicly_queriable etc.
+		//This probably means that this func should maybe be quite diff and 
+		//cpt_resource should be used to add actions such as create, new, edit, update
+
 		$this->cpts[$name] = array(
 			'action'  => $action,
 			'plugin'  => $plugin,
 			'method'  => 'GET'
 		);
+	}
+
+	public function cpt_resource( $name, $controller, $plugin ) {
+		# code...
 	}
 
 	public function register_endpoints() {
@@ -104,23 +114,24 @@ class PL_Route {
 	}
 
 	public function resolve( $wp ) {
-		// log_me($wp);
-
-		global $wp_rewrite;
-
-		$endpoints = array_filter( $this->endpoints, function( $v ) {
-				return $v['method'] == $_SERVER['REQUEST_METHOD'];
-			}
-		);
-
-		$cpts = array_filter( $this->cpts, function( $v ) {
-				return $v['method'] == $_SERVER['REQUEST_METHOD'];
-			}
-		);
-
-		$possibilities = array_merge( $endpoints, $cpts );
 		$matched_route = false;
-		
+
+		if( !empty( $wp->query_vars ) ) {
+			log_me($wp);
+			
+			$possibilities = array_filter( $this->cpts, function( $val ) {
+					return $val['method'] == $_SERVER['REQUEST_METHOD'];
+				}
+			);
+
+			
+		}
+
+		$possibilities = array_filter( $this->endpoints, function( $val ) {
+				return $val['method'] == $_SERVER['REQUEST_METHOD'];
+			}
+		);
+
 		foreach( $possibilities as $route => $props ) {
 			if ( $props['rewrite']['rule'] == $wp->matched_rule ) {
 				$matched_route = $possibilities[$route];
@@ -132,9 +143,7 @@ class PL_Route {
 		} 
 		
 		return $matched_route;
-
 	}
-
 
 	public function get_current() {
 		return $this->current;

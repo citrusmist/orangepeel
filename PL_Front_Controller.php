@@ -54,6 +54,8 @@ class PL_Front_Controller {
 			return;
 		}
 
+		log_me( $route );
+
 		parse_str( stripslashes( $wp->matched_query ), $this->params );
 
 		$this->load_template( $route );
