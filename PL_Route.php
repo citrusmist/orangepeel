@@ -84,6 +84,17 @@ class PL_Route {
 		);
 	}
 
+	public function cpt_get( $route, $action, $qv, $plugin ) {
+		
+		$this->cpts[$name] = array(
+			'action'  => $action,
+			'plugin'  => $plugin,
+			'qv'      => $qv,
+			'method'  => 'GET',
+			'rewrite' => $this->calc_cpt_rewrite_rule( $route, $action )
+		);
+	}
+
 	public function cpt_resource( $name, $controller, $plugin ) {
 		# code...
 	}
@@ -109,10 +120,18 @@ class PL_Route {
 			$redirect .= '&id=$matches[1]';
 		}
 
+		if( strpos( $rule, '{:slug}' ) !== false ) {
+			$rule      = str_replace( '{:slug}', '([^/]+)', $rule );
+			$redirect .= '&id=$matches[1]';
+		}
+
 		return array (
 			'rule'     => $rule . '/?$',
 			'redirect' => $redirect,
 		);
+	}
+
+	public function calc_cpt_rewrite_rule( $route, $action ) {
 	}
 
 	public function resolve( $wp ) {
