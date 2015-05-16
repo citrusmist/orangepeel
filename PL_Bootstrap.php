@@ -58,8 +58,6 @@ abstract class PL_Bootstrap {
 		return $slug;
 	}
 
-
-
 	public static function get_plugin_prop( $prop ) {
 
 		$class = self::get_plugin_class();
@@ -74,10 +72,44 @@ abstract class PL_Bootstrap {
 		return $value;
 	}
 
-	public function add_cpt( $slug, $args ) {
+	public function register_cpts() {
+
+		foreach ($this->cpts as $cpt => $args) {
+			register_post_type( $cpt, $args );
+		}
+	}
+
+	public function generate_cpt_routes( $slug, $args, $actions ) {
+		
+		$qv = array(
+			'post_type' => $slug
+		);
+
+		if( $args['public'] === false || $args['rewrite'] === false ) {
+			return;
+		}
+
+		$this->plugin->add_cpt_route( 
+			$args['rewrite']['slug'] . '/{:slug}', 
+			$actions['show'], 
+			array_merge( $qv, array(
+				'name' => ''
+			) 
+		) );
+
+		if( $args['has_archive'] !== false ) {
+			$this->plugin->add_cpt_route( 
+				$args['has_archive'] === true ? $slug : $args['has_archive'], 
+				$actions['index'], 
+				$qv 
+			);
+		}
+	}
+
+	public function add_cpt( $slug, $args, $actions = 'default' ) {
 
 		$plugin_slug = $this->plugin->get_name();
-		$pl_slug     = \PL_Inflector::pluralize($slug);
+		$pl_slug     = \PL_Inflector::pluralize( $slug );
 
 		$defaults = array(
 			
@@ -137,7 +169,7 @@ abstract class PL_Bootstrap {
 			 * The URI to the icon to use for the admin menu item. There is no header icon argument, so 
 			 * you'll need to use CSS to add one.
 			 */
-			'menu_icon'           => 'dashicons-slides', // string (defaults to use the post icon)
+			// 'menu_icon'           => 'dashicons-slides', // string (defaults to use the post icon)
 			
 			/**
 			 * Whether the posts of this post type can be exported via the WordPress import/export plugin 
@@ -247,16 +279,18 @@ abstract class PL_Bootstrap {
 			)
 		);
 
-		$args = wp_parse_args( $args, $defaults );
+		$this->cpts[$slug] = wp_parse_args( $args, $defaults );
 
-		$this->cpts[$slug] = $args;
-	}
+		if( $actions == 'default' ) {
+			$class =  \PL_Inflector::default_ctrl_class( $slug, $this );
 
-	public function register_cpts() {
-
-		foreach ($this->cpts as $cpt => $args) {
-			register_post_type( $cpt, $args );
+			$actions = array(
+				'index' => $class . '#index',
+				'show'  => $class . '#show' 
+			);
 		}
+
+		$this->generate_cpt_routes( $slug, $this->cpts[$slug], $actions );
 	}
 
 /*	protected static function setup_dependencies(){

@@ -122,9 +122,6 @@ abstract class PL_Plugin {
 		$this->route->post( $name, $action, $this->get_name() );
 	}
 
-	public function add_cpt_route( $name, $action ) {
-		$this->route->cpt( $name, $action, $this->get_name() );
-	}
 
 	public function add_get_route( $name, $action ) {
 		$this->route->get( $name, $action, $this->get_name() );
@@ -134,6 +131,9 @@ abstract class PL_Plugin {
 		$this->route->resource( $name, $action, $this->get_name() );
 	}
 
+	public function add_cpt_route( $name, $action, $qv ) {
+		$this->route->cpt( $name, $action, $qv, $this->get_name() );
+	}
 	/**
 	 * Return the plugin slug.
 	 *

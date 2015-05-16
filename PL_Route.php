@@ -68,7 +68,7 @@ class PL_Route {
 		);
 	}
 	
-	public function cpt( $name, $cpt, $action, $plugin ) {
+	public function cpt( $name, $action, $qv, $plugin ) {
 
 		//README CPT should be registered automatically based on paramteres 
 		//the cpt is registred with e.g. publicly_queriable etc.
@@ -78,6 +78,7 @@ class PL_Route {
 		$this->cpts[$name] = array(
 			'action'  => $action,
 			'plugin'  => $plugin,
+			'qv'      => $qv,
 			'method'  => 'GET'
 		);
 	}
@@ -114,17 +115,29 @@ class PL_Route {
 	}
 
 	public function resolve( $wp ) {
+		log_me($wp);
 		$matched_route = false;
 
 		if( !empty( $wp->query_vars ) ) {
-			log_me($wp);
-			
+
+			//exclude routes where a cpt or request method don't match query_vars
 			$possibilities = array_filter( $this->cpts, function( $val ) {
-					return $val['method'] == $_SERVER['REQUEST_METHOD'];
+					$possibility = $val['qv']['post_type'] == $wp->query_vars 
+						&& $val['method'] == $_SERVER['REQUEST_METHOD'];
+
+					return $possibility;
 				}
 			);
 
-			
+			array_reduce( $possibilities, function( $carry, $poss ) {
+				$poss['qv']
+			});
+
+			foreach( $possibilities as $route => $props ) {
+				if( $props ) {
+
+				}
+			}
 		}
 
 		$possibilities = array_filter( $this->endpoints, function( $val ) {

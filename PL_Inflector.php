@@ -198,7 +198,7 @@ class PL_Inflector
 		public static function titleize($word, $uppercase = '')
 		{
 				$uppercase = $uppercase == 'first' ? 'ucfirst' : 'ucwords';
-				return $uppercase(Inflector::humanize(Inflector::underscore($word)));
+				return $uppercase(PL_Inflector::humanize(PL_Inflector::underscore($word)));
 		}
 
 		// }}}
@@ -289,7 +289,7 @@ class PL_Inflector
 		*/
 		public static function variablize($word)
 		{
-				$word = Inflector::camelize($word);
+				$word = PL_Inflector::camelize($word);
 				return strtolower($word[0]).substr($word,1);
 		}
 
@@ -310,7 +310,7 @@ class PL_Inflector
 		*/
 		public static function tableize($class_name)
 		{
-				return Inflector::pluralize(Inflector::underscore($class_name));
+				return PL_Inflector::pluralize(PL_Inflector::underscore($class_name));
 		}
 
 		// }}}
@@ -330,7 +330,7 @@ class PL_Inflector
 		*/
 		public static function classify($table_name)
 		{
-				return Inflector::camelize(Inflector::singularize($table_name));
+				return PL_Inflector::camelize(PL_Inflector::singularize($table_name));
 		}
 
 		// }}}
@@ -367,6 +367,16 @@ class PL_Inflector
 				}
 		}
 
+		public static function default_ctrl_class( $slug, $module, $access = 'public' ) {
+			
+			$rc   = new ReflectionClass( $module );
+			$ns   = $rc->getNamespaceName();
+			$slug = PL_Inflector::pluralize( PL_Inflector::titleize( $slug, 'all' ) );
+			$slug = str_replace( ' ', '_',  $slug );
+			$class = '\\' . ucfirst( $access ) . '_Controller_' . $slug;
+
+			return $ns . $class;
+		}
 		// }}}
 
 }
