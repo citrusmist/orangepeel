@@ -59,7 +59,13 @@ abstract class PL_Bootstrap {
 		}
 	}
 
-	public function generate_cpt_routes( $slug, $args, $actions ) {
+
+	/*
+	 * README
+	 * Not sure if this belongs in Bootstrap class, feels like it maybe should be somewhere else...
+	 * perhaps some kind of route factory and route resolver type of thing
+	 */
+	public function generate_cpt_builtin_routes( $slug, $args, $actions ) {
 		
 		$qv = array(
 			'post_type' => $slug
@@ -195,7 +201,7 @@ abstract class PL_Bootstrap {
 			'rewrite' => array(
 			
 				/* The slug to use for individual posts of this type. */
-				'slug'       => $slug, // string (defaults to the post type name)
+				'slug'       => $pl_slug, // string (defaults to the post type name)
 			
 				/* Whether to show the $wp_rewrite->front slug in the permalink. */
 				'with_front' => false, // bool (defaults to TRUE)
@@ -270,7 +276,7 @@ abstract class PL_Bootstrap {
 			);
 		}
 
-		$this->generate_cpt_routes( $slug, $this->cpts[$slug], $actions );
+		$this->generate_cpt_builtin_routes( $slug, $this->cpts[$slug], $actions );
 	}
 
 /*	protected static function setup_dependencies(){

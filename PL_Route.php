@@ -33,7 +33,28 @@ class PL_Route {
 	protected function register_callbacks() {
 		//README Kind of feel that maybe everything shtould be static
 		//and it should be another class's role to register endpoints
-		add_action( 'init', array( $this, 'register_endpoints' ) );
+
+		/**
+		 * Routes for registered CPTs must be calculated in calc_cpt_routes before 
+		 * all routes are registered in the system. calc_cpt_routes must be called after
+		 * all the CPT have been registered in order to retriece CPT objects
+		 */
+		add_action( 'init', array( $this, 'calc_cpt_routes' ), 90 );
+		add_action( 'init', array( $this, 'register_routes' ), 100 );
+	}
+
+	public function calc_cpt_routes() {
+	}
+
+	public function register_routes() {
+
+		foreach ( $this->endpoints as $endpoint ) {
+			add_rewrite_rule( 
+				$endpoint['rewrite']['rule'], 
+				$endpoint['rewrite']['redirect'], 
+				'top' 
+			);
+		}
 	}
 
 	public function resource( $name, $controller, $plugin ) {
@@ -97,17 +118,6 @@ class PL_Route {
 
 	public function cpt_resource( $name, $controller, $plugin ) {
 		# code...
-	}
-
-	public function register_endpoints() {
-
-		foreach ( $this->endpoints as $endpoint ) {
-			add_rewrite_rule( 
-				$endpoint['rewrite']['rule'], 
-				$endpoint['rewrite']['redirect'], 
-				'top' 
-			);
-		}
 	}
 
 	public function calc_rewrite_rule( $route, $action ) {
