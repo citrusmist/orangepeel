@@ -13,8 +13,9 @@ class PL_Route {
 
 	protected static $instance;
 
-	protected $endpoints = array();
-	protected $cpts      = array();
+	protected $endpoints  = array();
+	protected $cpts       = array();
+	protected $cpt_routes = array();
 	protected $current;
 	
 	private function __construct() {
@@ -39,11 +40,45 @@ class PL_Route {
 		 * all routes are registered in the system. calc_cpt_routes must be called after
 		 * all the CPT have been registered in order to retriece CPT objects
 		 */
-		add_action( 'init', array( $this, 'calc_cpt_routes' ), 90 );
+		add_action( 'init', array( $this, 'calc_cpts_routes' ), 90 );
 		add_action( 'init', array( $this, 'register_routes' ), 100 );
 	}
 
-	public function calc_cpt_routes() {
+	public function calc_cpts_routes() {
+
+		foreach( $this->cpts as $cpt => $val ) {
+
+			$cpt_obj = get_post_type_object( $cpt );
+
+			$index_route = $cpt_obj->has_archive === true ? $cpt_obj->rewrite['slug'] : $cpt_obj->has_archive;
+
+			$this->cpt_routes[$index_route . '/{:slug}'] = array(
+				'action'    => is_array( $val['actions'] ) ? $val['actions']['show'] : $val['actions'] . '#show',
+				'plugin'    => $val['plugin'],
+				'method'    => 'GET',
+				'rewrite'   => '_builtin#show',
+				'qv'        => array( 
+					'post_type' => $cpt,
+					'name'      => '' 
+				)
+			);
+
+			if( $index_route !== false ) {
+				$this->cpt_routes[$index_route] = array(
+					'action'    => is_array( $val['actions'] ) ? $val['actions']['index'] : $val['actions'] . '#index',
+					'plugin'    => $val['plugin'],
+					'method'    => 'GET',
+					'rewrite'   => '_builtin#index',
+					'qv'        => array( 
+						'post_type' => $cpt,
+					)
+				);	
+			}
+
+			//TODO register remainder of resource CRUD routes
+		}
+
+	
 	}
 
 	public function register_routes() {
@@ -89,36 +124,55 @@ class PL_Route {
 		);
 	}
 	
-	public function cpt_builtin( $name, $action, $qv, $plugin ) {
+	public function cpt_builtin( $cpt, $actions, $plugin ) {
 
 		//README CPT should be registered automatically based on paramteres 
 		//the cpt is registred with e.g. publicly_queriable etc.
 		//This probably means that this func should maybe be quite diff and 
 		//cpt_resource should be used to add actions such as create, new, edit, update
 
-		$this->cpts[$name] = array(
+		/*$this->cpts[$name] = array(
 			'action'  => $action,
 			'plugin'  => $plugin,
 			'qv'      => $qv,
 			'method'  => 'GET',
 			'rewrite' => '_builtin'
+		);*/
+
+		/*if( is_string( $actions ) ) {
+			$actions = array(
+				'index' => $actions . '#index',
+				'show'  => $actions . '#show',
+			);
+		}
+
+		$this->cpt_get( $cpt, '{:cpt_rewrite}', $actions['index'], $plugin );
+		$this->cpt_get( $cpt, '{:cpt_rewrite}/{:slug}', $actions['show'], $plugin );*/
+		$this->cpts[$cpt] = array( 
+			'actions' => $actions, 
+			'type'    => 'builtin', 
+			'plugin'  => $plugin 
 		);
 	}
 
-	public function cpt_get( $route, $action, $qv, $plugin ) {
+	public function cpt_resource( $cpt, $controller, $plugin ) {
+		$this->cpts[$cpt] = array( 
+			'actions' => $controller, 
+			'type'    => 'resource', 
+			'plugin'  => $plugin 
+		);
+	}
+
+	public function cpt_get( $cpt, $route, $action, $plugin ) {
 		
-		$this->cpts[$name] = array(
-			'action'  => $action,
-			'plugin'  => $plugin,
-			'qv'      => $qv,
-			'method'  => 'GET',
-			'rewrite' => $this->calc_cpt_rewrite_rule( $route, $action )
+		$this->cpt_routes[$route] = array(
+			'action'    => $action,
+			'plugin'    => $plugin,
+			'method'    => 'GET',
+			'post_type' => $cpt
 		);
 	}
 
-	public function cpt_resource( $name, $controller, $plugin ) {
-		# code...
-	}
 
 	public function calc_rewrite_rule( $route, $action ) {
 		
@@ -171,29 +225,53 @@ class PL_Route {
 		
 		//exclude routes where a cpt or request method don't match query_vars
 		$possibilities = array_filter( 
-			$this->cpts, 
+			$this->cpt_routes, 
 			function( $val ) use( &$wp ) {
 				
-				$possibility = isset( $wp->query_vars['post_type'] )
+				$is_possible = isset( $wp->query_vars['post_type'] )
 					&& $val['qv']['post_type'] == $wp->query_vars['post_type'] 
 					&& $val['method'] == $_SERVER['REQUEST_METHOD'];
 
-				return $possibility;
+				return $is_possible;
+			}
+		);
+		
+		/*
+		 * First check if there is a CPT route which has a rewrite rule 
+		 * that exactly matches the the rule just completed in the request
+		 * This prevents false positives that might happend when checking
+		 * for presence to query vars to determine a builtin route
+		 */
+		$possibilities = array_filter( 
+			$possibilities, 
+			function( $props ) use( &$wp, &$matched_route ) {
+			
+				if( strpos( $props['rewrite'], 'builtin' ) !== false  ) {
+					return true;	
+				}
+
+				if( $props['rewrite']['rule'] == $wp->matched_rule && $matched_route === false ) {
+					$matched_route = $possibilities[$route];
+				}
+
+				return false;
 			}
 		);
 
-		foreach( $possibilities as $route => $props ) {
-			
-			$old = array();
-			$new = array_intersect_key( $props['qv'], $wp->query_vars );
+		if( $matched_route === false ) {
 
-			if( $matched_route ) {
-				$old = array_intersect_key( $props['qv'], $wp->query_vars );
+			foreach( $possibilities as $route => $props ) {
+				
+				if( $props['rewrite'] == '_builtin#show' && !empty( $wp->query_vars['name'] ) ) {
+					$matched_route = $props;
+					break;
+				}
+
+				if( $props['rewrite'] == '_builtin#index' && empty( $wp->query_vars['name'] ) ) { 
+					$matched_route = $props;
+					break;
+				}
 			}
-
-			if( count( $new ) > count( $old ) ) {
-				$matched_route = $possibilities[$route];
-			} 
 		}
 
 		return $matched_route;

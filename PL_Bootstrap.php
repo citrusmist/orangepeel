@@ -178,6 +178,7 @@ abstract class PL_Bootstrap {
 			 * posts. If set to TRUE, the post type name will be used for the archive slug.  You can also 
 			 * set this to a string to control the exact name of the archive slug.
 			 */
+			// 'has_archive'         => $pl_slug, // bool|string (defaults to FALSE)
 			'has_archive'         => $pl_slug, // bool|string (defaults to FALSE)
 			
 			/**
@@ -267,16 +268,16 @@ abstract class PL_Bootstrap {
 
 		$this->cpts[$slug] = wp_parse_args( $args, $defaults );
 
-		if( $actions == 'default' ) {
-			$class =  \PL_Inflector::default_ctrl_class( $slug, $this );
-
-			$actions = array(
-				'index' => $class . '#index',
-				'show'  => $class . '#show' 
-			);
+		if( $actions == 'default' || $actions == 'resource' ) {
+			$actions = \PL_Inflector::default_ctrl_class( $slug, $this );
 		}
 
-		$this->generate_cpt_builtin_routes( $slug, $this->cpts[$slug], $actions );
+		// $this->generate_cpt_builtin_routes( $slug, $this->cpts[$slug], $actions );
+		if( $actions == 'resource' ) {
+			$this->plugin->add_cpt_resource_routes( $slug, $actions );
+		} else {
+			$this->plugin->add_cpt_builtin_routes( $slug, $actions );
+		}
 	}
 
 /*	protected static function setup_dependencies(){
