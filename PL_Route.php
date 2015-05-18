@@ -55,7 +55,7 @@ class PL_Route {
 			//In case it's true has_archive == rewrite['slug']
 			$index_rewrite = $cpt_obj->has_archive === true ? $cpt_obj->rewrite['slug'] : $cpt_obj->has_archive;
 
-			$this->cpt_routes[$index_rewrite . '/{:slug}'] = array(
+			$this->cpt_routes[$index_rewrite . '/:name'] = array(
 				'action'    => is_array( $val['actions'] ) ? $val['actions']['show'] : $val['actions'] . '#show',
 				'plugin'    => $val['plugin'],
 				'method'    => 'GET',
@@ -80,28 +80,43 @@ class PL_Route {
 
 			if( $val['type'] == 'resource' ) {
 				
-				$this->cpt_routes[$index_rewrite . '/{:slug}/edit'] = array(
+				$rewrite = $this->calc_cpt_rewrite_rule(
+					$cpt,
+					$index_rewrite . '/:name/edit'
+				);
+
+				$this->cpt_routes[$index_rewrite . '/:name/edit'] = array(
 					'action'    => $val['actions'] . '#edit',
 					'plugin'    => $val['plugin'],
 					'method'    => 'GET',
-					'rewrite'   => $this->calc_cpt_rewrite_rule( $index_rewrite . '/{:slug}/edit' ), $controller . '#edit' ),
+					'rewrite'   => $rewrite,
 					'qv'        => array( 
 						'post_type' => $cpt,
 					)
 				);
-
 			}
 		}
 	}
 
 	public function register_routes() {
 
-		foreach ( $this->endpoints as $endpoint ) {
+		foreach( $this->endpoints as $endpoint ) {
 			add_rewrite_rule( 
 				$endpoint['rewrite']['rule'], 
 				$endpoint['rewrite']['redirect'], 
 				'top' 
 			);
+		}
+
+		foreach( $this->cpt_routes as $endpoint ) {
+
+			if( is_array($endpoint['rewrite']) ) {
+				add_rewrite_rule( 
+					$endpoint['rewrite']['rule'], 
+					$endpoint['rewrite']['redirect'], 
+					'top' 
+				);
+			}
 		}
 	}
 
@@ -113,11 +128,11 @@ class PL_Route {
 			'rewrite' => $this->calc_rewrite_rule( \PL_Inflector::pluralize( $name ), $controller . '#index' )
 		);	
 
-		$this->endpoints[$name . '/{:id}'] = array(
+		$this->endpoints[$name . '/:id'] = array(
 			'action'  => $controller . '#show',
 			'plugin'  => $plugin,
 			'method'  => 'GET',
-			'rewrite' => $this->calc_rewrite_rule( $name . '/{:id}', $controller . '#show' )
+			'rewrite' => $this->calc_rewrite_rule( $name . '/:id', $controller . '#show' )
 		);
 	}
 
@@ -192,13 +207,13 @@ class PL_Route {
 		$redirect = 'index.php?controllerAction=' . $action; 
 		$rule     = $route;
 
-		if( strpos( $rule, '{:id}' ) !== false ) {
-			$rule      = str_replace( '{:id}', '([0-9]{1,})', $rule );
+		if( strpos( $rule, ':id' ) !== false ) {
+			$rule      = str_replace( ':id', '([0-9]{1,})', $rule );
 			$redirect .= '&id=$matches[1]';
 		}
 
-		if( strpos( $rule, '{:slug}' ) !== false ) {
-			$rule      = str_replace( '{:slug}', '([^/]+)', $rule );
+		if( strpos( $rule, ':slug' ) !== false ) {
+			$rule      = str_replace( ':slug', '([^/]+)', $rule );
 			$redirect .= '&id=$matches[1]';
 		}
 
@@ -208,10 +223,14 @@ class PL_Route {
 		);
 	}
 
-	public function calc_cpt_rewrite_rule( $route, $action ) {
+	public function calc_cpt_rewrite_rule( $cpt, $route, $args = array() ) {
 		
-		$redirect = 'index.php?controllerAction=' . $action; 
+		$redirect = 'index.php?post_type=' . $cpt; 
 		$rule     = $route;
+
+		/*foreach( $args as $key => $value ) {
+			$redirect .= build_query( array( $key => $value['default'] ) );
+		}
 
 		if( strpos( $rule, '{:id}' ) !== false ) {
 			$rule      = str_replace( '{:id}', '([0-9]{1,})', $rule );
@@ -221,7 +240,27 @@ class PL_Route {
 		if( strpos( $rule, '{:slug}' ) !== false ) {
 			$rule      = str_replace( '{:slug}', '([^/]+)', $rule );
 			$redirect .= '&id=$matches[1]';
-		}
+		}*/
+
+		$count = 1;
+		$rule = preg_replace_callback(
+			'/:([^\/]+)(\/)?/', 
+			function( $matches ) use ( &$redirect, &$args, &$count ) {
+
+				for( $i = 1; $i < count( $matches ); $i++ ) { 
+					
+					if( empty( $matches[$i] ) || $matches[$i] == '/' ) {
+						continue;
+					}
+
+					$redirect .= '&' . $matches[$i] . '=$matches[' . $count . ']';
+					$count++;
+				}
+
+				return empty( $matches[2] ) ? '([^\/]+)' : '([^\/]+)' . $matches[2];
+			}, 
+			$rule
+		);
 
 		return array (
 			'rule'     => $rule . '/?$',
@@ -278,15 +317,15 @@ class PL_Route {
 			$possibilities, 
 			function( $props ) use( &$wp, &$matched_route ) {
 			
-				if( strpos( $props['rewrite'], 'builtin' ) !== false  ) {
-					return true;	
+				if( is_array( $props['rewrite'] ) ) {
+					if( $props['rewrite']['rule'] == $wp->matched_rule && $matched_route === false ) {
+						$matched_route = $props;
+					}
+
+					return false;
 				}
 
-				if( $props['rewrite']['rule'] == $wp->matched_rule && $matched_route === false ) {
-					$matched_route = $possibilities[$route];
-				}
-
-				return false;
+				return true;	
 			}
 		);
 

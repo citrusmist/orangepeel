@@ -269,16 +269,14 @@ abstract class PL_Bootstrap {
 		$this->cpts[$slug] = wp_parse_args( $args, $defaults );
 
 		if( $actions == 'default' || $actions == 'resource' ) {
-			$actions = \PL_Inflector::default_ctrl_class( $slug, $this );
+			$controller = \PL_Inflector::default_ctrl_class( $slug, $this );
+			$this->plugin->add_cpt_resource_routes( $slug, $controller );
+		} else {
+			$this->plugin->add_cpt_builtin_routes( $slug, $actions );
 		}
 
 		// $this->generate_cpt_builtin_routes( $slug, $this->cpts[$slug], $actions );
 		// TODO check if the post_type is going to be publicly queriable before adding routes
-		if( $actions == 'resource' ) {
-			$this->plugin->add_cpt_resource_routes( $slug, $actions );
-		} else {
-			$this->plugin->add_cpt_builtin_routes( $slug, $actions );
-		}
 	}
 
 /*	protected static function setup_dependencies(){
