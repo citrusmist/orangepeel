@@ -270,9 +270,14 @@ abstract class PL_Bootstrap {
 
 		if( $actions == 'default' || $actions == 'resource' ) {
 			$controller = \PL_Inflector::default_ctrl_class( $slug, $this );
+	 	} else {
+			$controller = $actions;
+		}
+
+		if( $actions == 'resource' ) {
 			$this->plugin->add_cpt_resource_routes( $slug, $controller );
 		} else {
-			$this->plugin->add_cpt_builtin_routes( $slug, $actions );
+			$this->plugin->add_cpt_builtin_routes( $slug, $controller );
 		}
 
 		// $this->generate_cpt_builtin_routes( $slug, $this->cpts[$slug], $actions );
