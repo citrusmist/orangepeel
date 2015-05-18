@@ -42,6 +42,8 @@ require_once( plugin_dir_path( __FILE__ ) . 'PL_Postmeta_Model.php' );
 require_once( plugin_dir_path( __FILE__ ) . 'PL_Std_Model.php' );
 require_once( plugin_dir_path( __FILE__ ) . 'PL_User.php' );
 require_once( plugin_dir_path( __FILE__ ) . 'PL_View.php' );
+require_once( plugin_dir_path( __FILE__ ) . 'PL_Router.php' );
+require_once( plugin_dir_path( __FILE__ ) . 'PL_Route_Factory.php' );
 require_once( plugin_dir_path( __FILE__ ) . 'PL_Route.php' );
 require_once( plugin_dir_path( __FILE__ ) . 'PL_Front_Controller.php' );
 require_once( plugin_dir_path( __FILE__ ) . 'PL_Module_Controller.php' );

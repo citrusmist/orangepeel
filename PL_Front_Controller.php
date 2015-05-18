@@ -48,7 +48,7 @@ class PL_Front_Controller {
 		// log_me( $req );
 		// log_me( $_GET );
 		// log_me( $_SERVER );
-		$route = PL_Route::get_instance()->resolve( $wp );
+		$route = PL_Router::get_instance()->resolve( $wp );
 
 		if ( $route == false ) { 
 			return;
@@ -79,7 +79,7 @@ class PL_Front_Controller {
 
 	public function render_view() {
 
-		$route             = PL_Route::get_instance()->get_current();
+		$route             = PL_Router::get_instance()->get_current();
 		$plugin            = PL_Plugin_Registry::get_instance()->get( $route['plugin'] );
 		$controller_action = explode( '#', $route['action'] );
 		$controller        = $controller_action[0];
