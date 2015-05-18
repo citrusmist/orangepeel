@@ -273,6 +273,7 @@ abstract class PL_Bootstrap {
 		}
 
 		// $this->generate_cpt_builtin_routes( $slug, $this->cpts[$slug], $actions );
+		// TODO check if the post_type is going to be publicly queriable before adding routes
 		if( $actions == 'resource' ) {
 			$this->plugin->add_cpt_resource_routes( $slug, $actions );
 		} else {

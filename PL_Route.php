@@ -50,9 +50,12 @@ class PL_Route {
 
 			$cpt_obj = get_post_type_object( $cpt );
 
-			$index_route = $cpt_obj->has_archive === true ? $cpt_obj->rewrite['slug'] : $cpt_obj->has_archive;
+			//In the post type object `rewrite` property is always computed and  
+			//has the slug key however the `has_archive` can be a boolean or a string. 
+			//In case it's true has_archive == rewrite['slug']
+			$index_rewrite = $cpt_obj->has_archive === true ? $cpt_obj->rewrite['slug'] : $cpt_obj->has_archive;
 
-			$this->cpt_routes[$index_route . '/{:slug}'] = array(
+			$this->cpt_routes[$index_rewrite . '/{:slug}'] = array(
 				'action'    => is_array( $val['actions'] ) ? $val['actions']['show'] : $val['actions'] . '#show',
 				'plugin'    => $val['plugin'],
 				'method'    => 'GET',
@@ -63,8 +66,8 @@ class PL_Route {
 				)
 			);
 
-			if( $index_route !== false ) {
-				$this->cpt_routes[$index_route] = array(
+			if( $index_rewrite !== false ) {
+				$this->cpt_routes[$index_rewrite] = array(
 					'action'    => is_array( $val['actions'] ) ? $val['actions']['index'] : $val['actions'] . '#index',
 					'plugin'    => $val['plugin'],
 					'method'    => 'GET',
@@ -75,10 +78,20 @@ class PL_Route {
 				);	
 			}
 
-			//TODO register remainder of resource CRUD routes
-		}
+			if( $val['type'] == 'resource' ) {
+				
+				$this->cpt_routes[$index_rewrite . '/{:slug}/edit'] = array(
+					'action'    => $val['actions'] . '#edit',
+					'plugin'    => $val['plugin'],
+					'method'    => 'GET',
+					'rewrite'   => $this->calc_cpt_rewrite_rule( $index_rewrite . '/{:slug}/edit' ), $controller . '#edit' ),
+					'qv'        => array( 
+						'post_type' => $cpt,
+					)
+				);
 
-	
+			}
+		}
 	}
 
 	public function register_routes() {
@@ -196,6 +209,25 @@ class PL_Route {
 	}
 
 	public function calc_cpt_rewrite_rule( $route, $action ) {
+		
+		$redirect = 'index.php?controllerAction=' . $action; 
+		$rule     = $route;
+
+		if( strpos( $rule, '{:id}' ) !== false ) {
+			$rule      = str_replace( '{:id}', '([0-9]{1,})', $rule );
+			$redirect .= '&id=$matches[1]';
+		}
+
+		if( strpos( $rule, '{:slug}' ) !== false ) {
+			$rule      = str_replace( '{:slug}', '([^/]+)', $rule );
+			$redirect .= '&id=$matches[1]';
+		}
+
+		return array (
+			'rule'     => $rule . '/?$',
+			'redirect' => $redirect,
+		);
+
 	}
 
 	public function resolve( $wp ) {
