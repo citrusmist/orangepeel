@@ -65,7 +65,7 @@ abstract class PL_Bootstrap {
 	 * Not sure if this belongs in Bootstrap class, feels like it maybe should be somewhere else...
 	 * perhaps some kind of route factory and route resolver type of thing
 	 */
-	public function generate_cpt_builtin_routes( $slug, $args, $actions ) {
+	/*public function generate_cpt_builtin_routes( $slug, $args, $actions ) {
 		
 		$qv = array(
 			'post_type' => $slug
@@ -90,9 +90,9 @@ abstract class PL_Bootstrap {
 				$qv 
 			);
 		}
-	}
+	}*/
 
-	public function add_cpt( $slug, $args, $actions = 'default' ) {
+	public function add_cpt( $slug, $args, $controller = 'default' ) {
 
 		$plugin_slug = $this->plugin->get_name();
 		$pl_slug     = \PL_Inflector::pluralize( $slug );
@@ -268,20 +268,23 @@ abstract class PL_Bootstrap {
 
 		$this->cpts[$slug] = wp_parse_args( $args, $defaults );
 
-		if( $actions == 'default' || $actions == 'resource' ) {
+		if( $controller == 'default' ) {
 			$controller = \PL_Inflector::default_ctrl_class( $slug, $this );
-	 	} else {
-			$controller = $actions;
-		}
-
-		if( $actions == 'resource' ) {
-			$this->plugin->add_cpt_resource_routes( $slug, $controller );
-		} else {
-			$this->plugin->add_cpt_builtin_routes( $slug, $controller );
-		}
-
-		// $this->generate_cpt_builtin_routes( $slug, $this->cpts[$slug], $actions );
-		// TODO check if the post_type is going to be publicly queriable before adding routes
+	 	} 
+		
+		//README feel like this could be bit nicer...
+		//maybe the cpt key should be called post_type
+		//and maybe setting it true will be enough as we 
+		//are passing in the slug as the first parameter
+		//after all
+		$this->plugin->route_resource( 
+			$slug, 
+			array(
+				'controller' => $controller,
+				'cpt'        => $slug 
+			),
+			array( 'only' => array( 'index', 'show' ) )
+		);
 	}
 
 /*	protected static function setup_dependencies(){

@@ -56,16 +56,25 @@ class PL_Router {
 
 	public function calc_routes() {
 		
-		foreach( $this->resource as $name => $args ) {
-			$this->routes = $this->routes + $this->factory->resource( $name, $args );
+		foreach( $this->resource as $name => $params ) {
+			$this->routes = array_merge( 
+				$this->routes,
+				$this->factory->resource( $name, $params['args'], $params['options'] ) 
+			);
 		}
 
 		foreach( $this->get as $route => $args ) {
-			$this->routes = $this->routes + $this->factory->get( $route, $args );
+			$this->routes = array_merge( 
+				$this->routes,
+				$this->factory->get( $route, $args ) 
+			);
 		}
 		
 		foreach( $this->post as $route => $args ) {
-			$this->routes = $this->routes + $this->factory->post( $route, $args );
+			$this->routes = array_merge( 
+				$this->routes, 
+				$this->factory->post( $route, $args ) 
+			);
 		}
 
 		log_me( $this->routes );
@@ -147,7 +156,7 @@ class PL_Router {
 		}
 	}
 
-	public function resource( $name, $args, $plugin ) {
+	public function resource( $name, $args, $options = array(), $plugin ) {
 
 		$defaults = array(
 			'cpt'    => false,
@@ -165,7 +174,10 @@ class PL_Router {
 			return;
 		}
 
-		$this->resource[$name] = $args;
+		$this->resource[$name] = array( 
+			'args'    => $args,
+			'options' => $options
+		);
 
 		/*$this->endpoints[$name] = array(
 			'action'  => $controller . '#index',

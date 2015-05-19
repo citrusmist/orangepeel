@@ -124,8 +124,8 @@ abstract class PL_Plugin {
 		);
 	}
 
-	public function route_resource( $name, $args ) {
-		$this->route->resource( $name, $args, $this->get_name() );
+	public function route_resource( $name, $args, $options = array() ) {
+		$this->route->resource( $name, $args, $options, $this->get_name() );
 	}
 
 	/**
