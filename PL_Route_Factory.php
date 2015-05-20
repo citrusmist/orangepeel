@@ -99,6 +99,8 @@ class PL_Route_Factory {
 			'params'      => $args['params']
 		) );
 		
+		log_me( func_get_args() );
+
 		unset( $args['type'] );
 		unset( $args['constraints'] );
 		unset( $args['params'] );

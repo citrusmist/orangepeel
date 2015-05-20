@@ -34,7 +34,7 @@ abstract class PL_Route {
 	public function __get( $prop ) {
 		
 		if( property_exists( $this, $prop ) ) {
-			return $this->prop;
+			return $this->$prop;
 		}
 	}
 
