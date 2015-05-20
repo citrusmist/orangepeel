@@ -3,7 +3,7 @@
 /**
  * 
  */
-class PL_Route {
+abstract class PL_Route {
 	
 	protected $route;
 
@@ -19,9 +19,12 @@ class PL_Route {
 
 	protected $cpt;
 
-	function __construct( $route, $args ) {
+	protected $defaults;
 
-		$this->route = $route;
+	function __construct( $route, $args, $parser ) {
+
+		$this->route  = $route;
+		$this->parser = $parser;
 
 		foreach( $args as $key => $value ) {
 			$this->$key = $value;
@@ -46,7 +49,9 @@ class PL_Route {
 		}
 	}
 
-	public function calc_rewrite_rule() {
-		# code...
+	public function parse() {
+		return $this->parser->parse( $this );
 	}
+
+	abstract public function calc_rewrite();
 }

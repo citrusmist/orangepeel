@@ -252,10 +252,10 @@ abstract class PL_Bootstrap {
 				'edit_item'          => __( 'Edit '. ucfirst( $slug ),             $plugin_slug ),
 				'new_item'           => __( 'New '. ucfirst( $slug ),              $plugin_slug ),
 				'view_item'          => __( 'View '. ucfirst( $slug ),             $plugin_slug ),
-				'search_items'       => __( 'Search' . ucfirst( $pl_slug ),        $plugin_slug ),
+				'search_items'       => __( 'Search ' . ucfirst( $pl_slug ),       $plugin_slug ),
 				'not_found'          => __( 'No ' . $pl_slug . ' found',           $plugin_slug ),
 				'not_found_in_trash' => __( 'No ' . $pl_slug . ' found in trash',  $plugin_slug ),
-				'all_items'          => __( 'All'. ucfirst( $pl_slug ),            $plugin_slug ),
+				'all_items'          => __( 'All '. ucfirst( $pl_slug ),           $plugin_slug ),
 			
 				/* Labels for hierarchical post types only. */
 				'parent_item'        => __( 'Parent '. ucfirst( $slug ),           $plugin_slug ),
@@ -281,9 +281,9 @@ abstract class PL_Bootstrap {
 			$slug, 
 			array(
 				'controller' => $controller,
-				'cpt'        => $slug 
-			),
-			array( 'only' => array( 'index', 'show' ) )
+				'type'       => 'CPT',
+				'only'       => array( 'index', 'show' ) 
+			)
 		);
 	}
 

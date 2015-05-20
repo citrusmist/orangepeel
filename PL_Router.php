@@ -39,7 +39,6 @@ class PL_Router {
     return self::$instance;
 	}
 
-
 	protected function register_callbacks() {
 		//README Kind of feel that maybe everything shtould be static
 		//and it should be another class's role to register endpoints
@@ -59,7 +58,7 @@ class PL_Router {
 		foreach( $this->resource as $name => $params ) {
 			$this->routes = array_merge( 
 				$this->routes,
-				$this->factory->resource( $name, $params['args'], $params['options'] ) 
+				$this->factory->resource( $name, $params['args'] ) 
 			);
 		}
 
@@ -156,10 +155,9 @@ class PL_Router {
 		}
 	}
 
-	public function resource( $name, $args, $options = array(), $plugin ) {
+	public function resource( $name, $args, $plugin ) {
 
 		$defaults = array(
-			'cpt'    => false,
 			'plugin' => $plugin
 		);
 
@@ -170,28 +168,13 @@ class PL_Router {
 		$args = wp_parse_args( $args, $defaults );
 
 		if( ! isset( $args['controller'] ) ) {
-			error_log( $name . ' resource hasn\'t been assigned a have a controller' );
+			error_log( $name . ' resource hasn\'t been assigned a controller' );
 			return;
 		}
 
 		$this->resource[$name] = array( 
 			'args'    => $args,
-			'options' => $options
 		);
-
-		/*$this->endpoints[$name] = array(
-			'action'  => $controller . '#index',
-			'plugin'  => $plugin,
-			'method'  => 'GET',
-			'rewrite' => $this->calc_rewrite_rule( $name, $controller . '#index' )
-		);	
-
-		$this->endpoints[$name . '/:id'] = array(
-			'action'  => $controller . '#show',
-			'plugin'  => $plugin,
-			'method'  => 'GET',
-			'rewrite' => $this->calc_rewrite_rule( $name . '/:id', $controller . '#show' )
-		);*/
 	}
 
 	public function get( $name, $action, $plugin ) {
