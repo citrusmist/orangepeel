@@ -24,7 +24,7 @@ class PL_Route_Parser {
 
 	public function parse( $route ) {
 		$rewrite  = array();
-		$segments = array();
+		$segments = array( 'format' );
 		$redirect = 'index.php?'; 
 		$rule     = $route->route;
 
@@ -42,7 +42,7 @@ class PL_Route_Parser {
 					$param_name = $matches[$i];
 					$segments[] = $matches[$i];
 
-					$constraint = '([^/]+)';
+					$constraint = '([^/\.]+)';
 
 					if( isset( $this->params[$matches[$i]] ) ) {
 						$param_name = $this->params[$matches[$i]];
@@ -60,12 +60,13 @@ class PL_Route_Parser {
 				return empty( $matches[2] ) ? $constraint : $constraint . $matches[2];
 			}, 
 			$rule
-		) . '/?$';
-		// ) . '(?:\.([^\/]+))?\/?$';
+		) . '(?:\.([^/]+))?/?$';
 
-		$defaults = array_diff_key( $route->defaults, $segments );
-		// $redirect .= $count === 1 ? '' : '&';
-		// $redirect .= 'format=$matches[' + $count + 1 . ']';
+		$redirect .= $count == 1 ? '' : '&';
+		$redirect .= 'format=$matches[' . $count . ']';
+		$count++;
+
+		$defaults = array_diff_key( $route->defaults, array_flip( $segments ) );
 
 		foreach( $defaults as $key => $value ) {
 			$redirect .= $count == 1 ? '' : '&';

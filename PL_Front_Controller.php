@@ -50,7 +50,10 @@ class PL_Front_Controller {
 		parse_str( stripslashes( $wp->matched_query ), $wp_params );
 
 		$this->params = new \PL_Params( $wp_params );
-		$this->params->set_defaults( $route->defaults );
+		$this->params->set_defaults( array_merge( array( 'format' => 'html' ), $route->defaults ) );
+
+		log_me( __METHOD__ );
+		log_me( $this->params );
 
 		$this->load_template( $route );
 	}

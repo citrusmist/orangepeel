@@ -13,10 +13,11 @@ class PL_Route_CPT extends \PL_Route {
 	}
 
 	public function calc_rewrite() {
-		if( in_array( $this->action, array( 'index', 'show' ) ) ) {
+		/*if( in_array( $this->action, array( 'index', 'show' ) ) ) {
 			$this->rewrite = '_builtin';
 		} else {
 			$this->rewrite = $this->parse();
-		}
+		}*/
+		$this->rewrite = $this->parse();
 	}
 }

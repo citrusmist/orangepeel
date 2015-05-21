@@ -212,16 +212,15 @@ class PL_Router {
 		$possibilities = array_filter( 
 			$possibilities, 
 			function( $route ) use( &$wp, &$matched_route ) {
-			
-				if( $route->rewrite == '_builtin' ) {
-					return true;	
-				}
 
 				if( $route->rewrite['rule'] == $wp->matched_rule && $matched_route === false ) {
 					$matched_route = $route;
+					return false;
 				}
 
-				return false;
+				if ( in_array( $route->action, array( 'index', 'show' ) ) ) {
+					return true;
+				}
 			}
 		);
 
