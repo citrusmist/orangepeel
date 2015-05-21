@@ -13,12 +13,12 @@ class PL_Front_Controller {
 
 	public static function get_instance() {
 		if ( ! self::$instance ) {
-      self::$instance = new self();
-      //README should this be in the constructor
-      self::$instance->register_callbacks();
-    }
+			self::$instance = new self();
+			//README should this be in the constructor
+			self::$instance->register_callbacks();
+		}
 
-    return self::$instance;
+		return self::$instance;
 	}
 
 	public function register_callbacks() {
@@ -40,13 +40,17 @@ class PL_Front_Controller {
 	 */
 	public function parse_request( $wp ) {
 
-		$route = PL_Router::get_instance()->resolve( $wp );
+		$route     = PL_Router::get_instance()->resolve( $wp );
+		$wp_params = array();
 
 		if ( $route == false ) { 
 			return;
 		}
 
-		parse_str( stripslashes( $wp->matched_query ), $this->params );
+		parse_str( stripslashes( $wp->matched_query ), $wp_params );
+
+		$this->params = new \PL_Params( $wp_params );
+		$this->params->set_defaults( $route->defaults );
 
 		$this->load_template( $route );
 	}
@@ -64,7 +68,6 @@ class PL_Front_Controller {
 		$template = $route->plugin . '/' . $module . '/template.php';
 		$fallback = $plugin['instance']->get_plugindir_path() . '/' . $module . '/public/views/template.php';
 		$tinc     = new PL_Template_Include( $template, $fallback );
-
 	}
 
 	public function render_view() {
@@ -80,4 +83,5 @@ class PL_Front_Controller {
 			log_me('bastard');
 		}
 	}
+
 }
