@@ -40,21 +40,11 @@ class PL_Front_Controller {
 	 */
 	public function parse_request( $wp ) {
 
-		// global $wp_query;
-		
-		// if( ! $wp_query->is_main_query() ) {
-		// 	return;
-		// }
-		// log_me( $req );
-		// log_me( $_GET );
-		// log_me( $_SERVER );
 		$route = PL_Router::get_instance()->resolve( $wp );
 
 		if ( $route == false ) { 
 			return;
 		}
-
-		log_me( $route );
 
 		parse_str( stripslashes( $wp->matched_query ), $this->params );
 
@@ -67,11 +57,11 @@ class PL_Front_Controller {
 			return;
 		}
 
-		$plugin   = PL_Plugin_Registry::get_instance()->get( $route['plugin'] );
+		$plugin   = PL_Plugin_Registry::get_instance()->get( $route->plugin );
 		//Infer module name from namespace part of classname
-		$module   = strtolower( substr( $route['action'], 0, strrpos( $route['action'], '\\' ) ) );
+		$module   = strtolower( substr( $route->controller, 0, strrpos( $route->controller, '\\' ) ) );
 		
-		$template = $route['plugin'] . '/' . $module . '/template.php';
+		$template = $route->plugin . '/' . $module . '/template.php';
 		$fallback = $plugin['instance']->get_plugindir_path() . '/' . $module . '/public/views/template.php';
 		$tinc     = new PL_Template_Include( $template, $fallback );
 
@@ -79,27 +69,15 @@ class PL_Front_Controller {
 
 	public function render_view() {
 
-		$route             = PL_Router::get_instance()->get_current();
-		$plugin            = PL_Plugin_Registry::get_instance()->get( $route['plugin'] );
-		$controller_action = explode( '#', $route['action'] );
-		$controller        = $controller_action[0];
-		$action            = $controller_action[1];
+		$route  = PL_Router::get_instance()->get_current();
+		$plugin = PL_Plugin_Registry::get_instance()->get( $route->plugin );
 
-		if( is_callable( $controller, $action ) ) {
-			$controller = new $controller( $this->params, $plugin['instance']->get_path() );
-			$controller->$action();
+		if( is_callable( $route->controller, $route->action ) ) {
+			$controller = new $route->controller( $this->params, $plugin['instance']->get_path() );
+			$controller->{$route->action}();
 			echo $controller->render();
 		} else {
 			log_me('bastard');
 		}
-	}
-
-	public function controller_action_exists( $controller_action ) {
-		
-		$controller_action = explode( '#', $controller_action );
-		$controller        = $controller_action[0];
-		$action            = $controller_action[1];
-		
-		return is_callable( $controller, $action );
 	}
 }
