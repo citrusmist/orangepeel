@@ -41,6 +41,13 @@ abstract class PL_Module_Controller {
 		return $this->last_render;
 	}*/
 
+	/*
+	 * README Seems as these should be two separate things. One configures the render
+	 * and one executes it. The controller actions should be able to configure it the render
+	 * but I'm not sure if also executing it in one step is good practice...
+	 * Rails mixes execution and configuration in one method, but since we are in WP 
+	 * we might have do it differently
+	 */
 	public function render( $args ) {
 		/*
 		 * Some of these are mutually exclusive, e.g. if the layout or action are set then

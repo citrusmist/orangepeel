@@ -23,7 +23,7 @@ class PL_Front_Controller {
 
 	public function register_callbacks() {
 		add_action( 'parse_request', array( $this, 'parse_request' ) );
-		add_action( 'peel_view', array( $this, 'render_view' ) );
+		add_action( 'peel_view', array( $this, 'print_view' ) );
 		add_filter( 'wp_headers', array( $this, 'wp_headers' ), 10, 2 );
 	}
 
@@ -44,6 +44,7 @@ class PL_Front_Controller {
 		log_me( __METHOD__ );
 		log_me( $this->params );
 
+		$this->render_view( $route );
 		$this->load_template( $route );
 	}
 
@@ -67,18 +68,21 @@ class PL_Front_Controller {
 		$tinc     = new PL_Template_Include( $template, $fallback );
 	}
 
-	public function render_view() {
+	public function render_view( $route ) {
 
-		$route  = PL_Router::get_instance()->get_current();
+		// $route  = PL_Router::get_instance()->get_current();
 		$plugin = PL_Plugin_Registry::get_instance()->get( $route->plugin );
 
 		if( is_callable( $route->controller, $route->action ) ) {
 			$controller = new $route->controller( $this->params, $plugin['instance']->get_path() );
 			$controller->{$route->action}();
-			echo $controller->get_render();
+			$controller->render();
 		} else {
 			log_me('bastard');
 		}
 	}
 
+	public function print_view() {
+		echo $controller->get_render();
+	}
 }
