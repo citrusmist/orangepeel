@@ -59,7 +59,13 @@ abstract class PL_Bootstrap {
 		}
 	}
 
-	public function generate_cpt_routes( $slug, $args, $actions ) {
+
+	/*
+	 * README
+	 * Not sure if this belongs in Bootstrap class, feels like it maybe should be somewhere else...
+	 * perhaps some kind of route factory and route resolver type of thing
+	 */
+	/*public function generate_cpt_builtin_routes( $slug, $args, $actions ) {
 		
 		$qv = array(
 			'post_type' => $slug
@@ -84,9 +90,9 @@ abstract class PL_Bootstrap {
 				$qv 
 			);
 		}
-	}
+	}*/
 
-	public function add_cpt( $slug, $args, $actions = 'default' ) {
+	public function add_cpt( $slug, $args, $controller = 'default' ) {
 
 		$plugin_slug = $this->plugin->get_name();
 		$pl_slug     = \PL_Inflector::pluralize( $slug );
@@ -172,6 +178,7 @@ abstract class PL_Bootstrap {
 			 * posts. If set to TRUE, the post type name will be used for the archive slug.  You can also 
 			 * set this to a string to control the exact name of the archive slug.
 			 */
+			// 'has_archive'         => $pl_slug, // bool|string (defaults to FALSE)
 			'has_archive'         => $pl_slug, // bool|string (defaults to FALSE)
 			
 			/**
@@ -195,7 +202,7 @@ abstract class PL_Bootstrap {
 			'rewrite' => array(
 			
 				/* The slug to use for individual posts of this type. */
-				'slug'       => $slug, // string (defaults to the post type name)
+				'slug'       => $pl_slug, // string (defaults to the post type name)
 			
 				/* Whether to show the $wp_rewrite->front slug in the permalink. */
 				'with_front' => false, // bool (defaults to TRUE)
@@ -245,10 +252,10 @@ abstract class PL_Bootstrap {
 				'edit_item'          => __( 'Edit '. ucfirst( $slug ),             $plugin_slug ),
 				'new_item'           => __( 'New '. ucfirst( $slug ),              $plugin_slug ),
 				'view_item'          => __( 'View '. ucfirst( $slug ),             $plugin_slug ),
-				'search_items'       => __( 'Search' . ucfirst( $pl_slug ),        $plugin_slug ),
+				'search_items'       => __( 'Search ' . ucfirst( $pl_slug ),       $plugin_slug ),
 				'not_found'          => __( 'No ' . $pl_slug . ' found',           $plugin_slug ),
 				'not_found_in_trash' => __( 'No ' . $pl_slug . ' found in trash',  $plugin_slug ),
-				'all_items'          => __( 'All'. ucfirst( $pl_slug ),            $plugin_slug ),
+				'all_items'          => __( 'All '. ucfirst( $pl_slug ),           $plugin_slug ),
 			
 				/* Labels for hierarchical post types only. */
 				'parent_item'        => __( 'Parent '. ucfirst( $slug ),           $plugin_slug ),
@@ -261,16 +268,23 @@ abstract class PL_Bootstrap {
 
 		$this->cpts[$slug] = wp_parse_args( $args, $defaults );
 
-		if( $actions == 'default' ) {
-			$class =  \PL_Inflector::default_ctrl_class( $slug, $this );
-
-			$actions = array(
-				'index' => $class . '#index',
-				'show'  => $class . '#show' 
-			);
-		}
-
-		$this->generate_cpt_routes( $slug, $this->cpts[$slug], $actions );
+		if( $controller == 'default' ) {
+			$controller = \PL_Inflector::default_ctrl_class( $slug, $this );
+	 	} 
+		
+		//README feel like this could be bit nicer...
+		//maybe the cpt key should be called post_type
+		//and maybe setting it true will be enough as we 
+		//are passing in the slug as the first parameter
+		//after all
+		$this->plugin->route_resource( 
+			$slug, 
+			array(
+				'controller' => $controller,
+				'type'       => 'CPT',
+				'only'       => array( 'index', 'show' ) 
+			)
+		);
 	}
 
 /*	protected static function setup_dependencies(){

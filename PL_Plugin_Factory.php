@@ -44,7 +44,7 @@ abstract class PL_Plugin_Factory {
 	public function bootstrap( $version ) {
 
 		$plugin_class = $this->get_plugin_class();
-		$plugin       = new $plugin_class( $version, $this->plugindir_path, \PL_Route::get_instance() );
+		$plugin       = new $plugin_class( $version, $this->plugindir_path, \PL_Router::get_instance() );
 		$modules      = $this->load_modules( $plugin );
 		$registry     = PL_Plugin_Registry::get_instance();
 
@@ -121,7 +121,7 @@ abstract class PL_Plugin_Factory {
 		$mods            = $instance->get_modules();
 		$activator_class = substr_replace( get_called_class(), '_Activator',  strrpos( get_called_class(), '_' ) );
 		$plugin_class    = $instance->get_plugin_class(); 
-		$plugin          = new $plugin_class( '', $instance->get_plugindir_path(), \PL_Route::get_instance() );
+		$plugin          = new $plugin_class( '', $instance->get_plugindir_path(), \PL_Router::get_instance() );
 		
 		//Plugin deactivator
 		if( method_exists( $activator_class, 'activate' ) ) {
@@ -150,7 +150,7 @@ abstract class PL_Plugin_Factory {
 		$mods              = $instance->get_modules();
 		$deactivator_class = substr_replace( get_called_class(), '_Activator',  strrpos( get_called_class(), '_' ) );
 		$plugin_class      = $instance->get_plugin_class(); 
-		$plugin            = new $plugin_class( '', $instance->get_plugindir_path(), \PL_Route::get_instance() );
+		$plugin            = new $plugin_class( '', $instance->get_plugindir_path(), \PL_Router::get_instance() );
 
 		//Plugin deactivator
 		if( method_exists( $deactivator_class, 'deactivate' ) ) {

@@ -13,12 +13,12 @@ class PL_Front_Controller {
 
 	public static function get_instance() {
 		if ( ! self::$instance ) {
-      self::$instance = new self();
-      //README should this be in the constructor
-      self::$instance->register_callbacks();
-    }
+			self::$instance = new self();
+			//README should this be in the constructor
+			self::$instance->register_callbacks();
+		}
 
-    return self::$instance;
+		return self::$instance;
 	}
 
 	public function register_callbacks() {
@@ -40,23 +40,20 @@ class PL_Front_Controller {
 	 */
 	public function parse_request( $wp ) {
 
-		// global $wp_query;
-		
-		// if( ! $wp_query->is_main_query() ) {
-		// 	return;
-		// }
-		// log_me( $req );
-		// log_me( $_GET );
-		// log_me( $_SERVER );
-		$route = PL_Route::get_instance()->resolve( $wp );
+		$route     = PL_Router::get_instance()->resolve( $wp );
+		$wp_params = array();
 
 		if ( $route == false ) { 
 			return;
 		}
 
-		log_me( $route );
+		parse_str( stripslashes( $wp->matched_query ), $wp_params );
 
-		parse_str( stripslashes( $wp->matched_query ), $this->params );
+		$this->params = new \PL_Params( $wp_params );
+		$this->params->set_defaults( array_merge( array( 'format' => 'html' ), $route->defaults ) );
+
+		log_me( __METHOD__ );
+		log_me( $this->params );
 
 		$this->load_template( $route );
 	}
@@ -67,39 +64,27 @@ class PL_Front_Controller {
 			return;
 		}
 
-		$plugin   = PL_Plugin_Registry::get_instance()->get( $route['plugin'] );
+		$plugin   = PL_Plugin_Registry::get_instance()->get( $route->plugin );
 		//Infer module name from namespace part of classname
-		$module   = strtolower( substr( $route['action'], 0, strrpos( $route['action'], '\\' ) ) );
+		$module   = strtolower( substr( $route->controller, 0, strrpos( $route->controller, '\\' ) ) );
 		
-		$template = $route['plugin'] . '/' . $module . '/template.php';
+		$template = $route->plugin . '/' . $module . '/template.php';
 		$fallback = $plugin['instance']->get_plugindir_path() . '/' . $module . '/public/views/template.php';
 		$tinc     = new PL_Template_Include( $template, $fallback );
-
 	}
 
 	public function render_view() {
 
-		$route             = PL_Route::get_instance()->get_current();
-		$plugin            = PL_Plugin_Registry::get_instance()->get( $route['plugin'] );
-		$controller_action = explode( '#', $route['action'] );
-		$controller        = $controller_action[0];
-		$action            = $controller_action[1];
+		$route  = PL_Router::get_instance()->get_current();
+		$plugin = PL_Plugin_Registry::get_instance()->get( $route->plugin );
 
-		if( is_callable( $controller, $action ) ) {
-			$controller = new $controller( $this->params, $plugin['instance']->get_path() );
-			$controller->$action();
+		if( is_callable( $route->controller, $route->action ) ) {
+			$controller = new $route->controller( $this->params, $plugin['instance']->get_path() );
+			$controller->{$route->action}();
 			echo $controller->render();
 		} else {
 			log_me('bastard');
 		}
 	}
 
-	public function controller_action_exists( $controller_action ) {
-		
-		$controller_action = explode( '#', $controller_action );
-		$controller        = $controller_action[0];
-		$action            = $controller_action[1];
-		
-		return is_callable( $controller, $action );
-	}
 }

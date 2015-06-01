@@ -105,9 +105,29 @@ abstract class PL_Plugin {
 		$this->route->cpt( $name, $action, $qv, $this->get_name() );
 	}*/
 
-	public function add_cpt_builtin_route( $name, $action, $qv ) {
-		$this->route->cpt_builtin( $name, $action, $qv, $this->get_name() );
+	public function add_cpt_resource_routes( $name, $controller ) {
+		$this->route->cpt_resource( $name, $controller, $this->get_name() );
 	}
+
+	/**
+	 * Generates routes based on the parameters CPT has been registered with.
+	 * If CPT doesnt support archive pages then index action isn't registered
+	 */
+	public function add_cpt_builtin_routes( $name, $actions ) {
+		$this->route->cpt_builtin( $name, $actions, $this->get_name() );
+	}
+
+	public function route_get( $route, $args, $params = array() ) {
+		$defaults = array(
+			'cpt'    => false,
+			'plugin' => $this->get_name()
+		);
+	}
+
+	public function route_resource( $name, $args ) {
+		$this->route->resource( $name, $args, $this->get_name() );
+	}
+
 	/**
 	 * Return the plugin slug.
 	 *
