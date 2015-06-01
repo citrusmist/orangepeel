@@ -24,20 +24,9 @@ class PL_Front_Controller {
 	public function register_callbacks() {
 		add_action( 'parse_request', array( $this, 'parse_request' ) );
 		add_action( 'peel_view', array( $this, 'render_view' ) );
+		add_filter( 'wp_headers', array( $this, 'wp_headers' ), 10, 2 );
 	}
 
-	/*
-	 * Check for presence of a specific request, request resolves(maps) to 
-	 * to an action call execute the corresponding method in the controller.
-	 * The view is injected later with static::get_slug() . '_view' action
-	 *
-	 * @TODO: Refactor
-	 * This probably can be simplified if we dont rely on static methods as much.
-	 * We could have a function check if the request has anything to do with 
-	 * this module during the 'wp' hook and store the result of this test. 
-	 * Subsequent actions need only check this and get data this way rather than 
-	 * always querying get_query_var
-	 */
 	public function parse_request( $wp ) {
 
 		$route     = PL_Router::get_instance()->resolve( $wp );
@@ -56,6 +45,11 @@ class PL_Front_Controller {
 		log_me( $this->params );
 
 		$this->load_template( $route );
+	}
+
+	public function wp_headers( $headers, $wp ) {
+		log_me( $headers );
+		return $headers;
 	}
 
 	public function load_template( $route ) {
@@ -81,7 +75,7 @@ class PL_Front_Controller {
 		if( is_callable( $route->controller, $route->action ) ) {
 			$controller = new $route->controller( $this->params, $plugin['instance']->get_path() );
 			$controller->{$route->action}();
-			echo $controller->render();
+			echo $controller->get_render();
 		} else {
 			log_me('bastard');
 		}

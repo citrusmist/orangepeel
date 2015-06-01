@@ -167,7 +167,7 @@ class PL_Router {
 	}
 
 	public function resolve( $wp ) {
-		log_me($wp);
+		// log_me($wp);
 		$matched_route = false;
 
 		if( empty( $wp->query_vars ) ) {
@@ -180,8 +180,8 @@ class PL_Router {
 			$this->current = $matched_route;
 		}
 
-		log_me( __METHOD__ );
-		log_me( $matched_route );
+		// log_me( __METHOD__ );
+		// log_me( $matched_route );
 
 		return $matched_route;
 	}

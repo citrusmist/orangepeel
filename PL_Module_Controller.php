@@ -9,6 +9,7 @@ abstract class PL_Module_Controller {
 	protected $view_path      = null;
 	protected $errorlist_path = null;
 	protected $last_render    = null;
+	protected $render_args    = null;
 
 	public function __construct( $params, $plugin_path ) {
 		// $this->module = $module;
@@ -35,19 +36,59 @@ abstract class PL_Module_Controller {
 		}
 	}
 
-	public function render() {
+/*	public function render() {
 		$this->last_render = $this->view->render();
 		return $this->last_render;
+	}*/
+
+	public function render( $args ) {
+		/*
+		 * Some of these are mutually exclusive, e.g. if the layout or action are set then
+		 * json can't be. If one of the formats is set it means that none of the others can be.
+		 */
+		$defaults = array( 
+			'layout'       => '', 
+			'action'       => '',
+			'file'         => '',
+			'html'         => false,
+			'json'         => false,
+			'xml'          => false,
+			'plain'        => '',
+			'status'       => '',
+			'content_type' => ''
+		);
+
+		$args = $this->parse_render_args( $args );
+		$args = wp_parse_args( $args, $defaults );
+		$this->render_args = $args;
+
+		if( ! empty( $args['json'] ) ) {
+			$this->last_render = $args['json'];
+		} else {
+			$this->last_render = $this->view->render();
+		}
+	}
+
+	private function parse_render_args( $args ) {
+		
+		if( !empty( $args['layout'] ) ) {
+
+		} else if ( !empty( $args['action'] ) ) {
+
+		} else if ( !empty( $args['json'] ) ) {
+			$args['content_type'] = 'application/json';
+		}
 	}
 
 	public function get_render() {
+		$this->last_render = $this->view->render();
 		return $this->last_render;	
 	}
 
 	protected function module_view_path( $filename ) {
 		
 		$r_class   = new ReflectionClass( get_called_class() );
-		$view_path = $this->plugin_path . '/' . strtolower( $r_class->getNamespaceName() );
+		$view_path = strtolower( $r_class->getNamespaceName() );
 
 		if( stripos( get_called_class(), 'admin' ) === FALSE ){
 			$view_path .= '/public/views/' . $filename;
@@ -60,20 +101,22 @@ abstract class PL_Module_Controller {
 
 	protected function set_view_file( $filename ) {
 		
-		$plugin_path = $this->module_view_path( $filename );
+		$module_path = $this->module_view_path( $filename );
+		$plugin_path = $this->plugin_path . '/' . $module_path;
+		$theme_path  = get_stylesheet_directory() . '/' . $module_path;
+		$view_file   = '';
 
+		//short circuit checking for presence of file in theme folder 
+		//in case it's an admin action
 		if( stripos( get_called_class(), 'admin' ) !== FALSE ){
-			$this->view->set_path( $plugin_path );
-			return;
-		}
-
-		$theme_path = get_stylesheet_directory() . '/' . $this->get_bootstrap( 'plugin_prop', 'slug' ) . '/' . $filename;
-
-		if ( file_exists( $theme_path ) ){
-			$this->view->set_path( $theme_path );
+			$view_file = $plugin_path;
+		} else if ( file_exists( $theme_path ) ){
+			$view_file = $theme_path;
 		} else {
-			$this->view->set_path( $plugin_path );
+			$view_file = $plugin_path;
 		}	
+
+		$this->view->set_path( $view_file );
 	}
 
 }
