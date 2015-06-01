@@ -51,5 +51,5 @@ require_once( plugin_dir_path( __FILE__ ) . 'PL_Route_Custom.php' );
 require_once( plugin_dir_path( __FILE__ ) . 'PL_Route_Parser.php' );
 require_once( plugin_dir_path( __FILE__ ) . 'PL_Front_Controller.php' );
 require_once( plugin_dir_path( __FILE__ ) . 'PL_Module_Controller.php' );
-require_once( plugin_dir_path( __FILE__ ) . 'PL_Controller.php' );
+// require_once( plugin_dir_path( __FILE__ ) . 'PL_Controller.php' );
 require_once( plugin_dir_path( __FILE__ ) . 'PL_Bootstrap.php' );
