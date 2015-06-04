@@ -8,6 +8,7 @@ class PL_Front_Controller {
 	protected static $instance;
 
 	protected $params;
+	protected $controller;
 	
 	private function __construct() {}
 
@@ -44,8 +45,8 @@ class PL_Front_Controller {
 		log_me( __METHOD__ );
 		log_me( $this->params );
 
-		$this->render_view( $route );
-		$this->load_template( $route );
+		$this->dispatch_action( $route );
+		$this->render( $route );
 	}
 
 	public function wp_headers( $headers, $wp ) {
@@ -53,7 +54,7 @@ class PL_Front_Controller {
 		return $headers;
 	}
 
-	public function load_template( $route ) {
+	public function load_layout( $route ) {
 		
 		if( is_admin() ) {
 			return;
@@ -68,21 +69,42 @@ class PL_Front_Controller {
 		$tinc     = new PL_Template_Include( $template, $fallback );
 	}
 
-	public function render_view( $route ) {
+	public function dispatch_action( $route ) {
 
 		// $route  = PL_Router::get_instance()->get_current();
 		$plugin = PL_Plugin_Registry::get_instance()->get( $route->plugin );
 
 		if( is_callable( $route->controller, $route->action ) ) {
-			$controller = new $route->controller( $this->params, $plugin['instance']->get_path() );
-			$controller->{$route->action}();
-			$controller->render();
+			$this->controller = new $route->controller( $this->params, $plugin['instance']->get_path() );
+			$this->controller->{$route->action}();
 		} else {
 			log_me('bastard');
 		}
 	}
 
+	public function render( $route ) {
+		$r_args = $this->controller->get_render_args();
+
+		if( $r_args === null ) {
+			log_me( __METHOD__ );
+
+			switch ( $this->params['format'] ) {
+				case 'json':
+					log_me( $this->controller );
+					wp_send_json( $this->controller->get_view_data() );
+					break;
+				case 'html':
+					$this->load_layout( $route );
+				default:
+					$this->controller->compile_view();
+					break;
+			}
+		} else {
+			//render based on args passed in from controller
+		}
+	}
+
 	public function print_view() {
-		echo $controller->get_render();
+		echo $this->controller->get_render();
 	}
 }

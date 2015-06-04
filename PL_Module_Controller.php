@@ -68,12 +68,17 @@ abstract class PL_Module_Controller {
 		$args = $this->parse_render_args( $args );
 		$args = wp_parse_args( $args, $defaults );
 		$this->render_args = $args;
-
+/*
 		if( ! empty( $args['json'] ) ) {
 			$this->last_render = $args['json'];
 		} else {
 			$this->last_render = $this->view->render();
-		}
+		}*/
+	}
+
+
+	public function get_render_args() {
+		return $this->render_args;
 	}
 
 	private function parse_render_args( $args ) {
@@ -87,8 +92,12 @@ abstract class PL_Module_Controller {
 		}
 	}
 
-	public function get_render() {
+
+	function compile_view() {
 		$this->last_render = $this->view->render();
+	}
+
+	public function get_render() {
 		return $this->last_render;	
 	}
 
@@ -124,6 +133,14 @@ abstract class PL_Module_Controller {
 		}	
 
 		$this->view->set_path( $view_file );
+	}
+
+	public function get_view() {
+		return $this->view;
+	}
+
+	public function get_view_data() { 
+		return $this->view->get_data();
 	}
 
 }

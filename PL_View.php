@@ -18,7 +18,11 @@ class PL_View {
 	}
 
 	public function set_data( array $data ){
-		$this->_data = array_merge( $this->_data, $data);
+		$this->_data = array_merge( $this->_data, $data );
+	}
+
+	public function get_data(){
+		return $this->_data;
 	}
 
 	public function __get( $name ) {
