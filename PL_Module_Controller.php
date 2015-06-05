@@ -3,11 +3,12 @@
 
 abstract class PL_Module_Controller {
 
-	protected $module;
 	protected $plugin_path;
+	protected $name;
 	protected $view           = null;
+	protected $layout         = null;
+	protected $view_template  = null;
 	protected $view_path      = null;
-	protected $errorlist_path = null;
 	protected $last_render    = null;
 	protected $render_args    = null;
 
@@ -15,7 +16,8 @@ abstract class PL_Module_Controller {
 		// $this->module = $module;
 		$this->params      = $params;
 		$this->plugin_path = $plugin_path;
-		$this->view        = new PL_View();
+		$this->view        = new stdObject();
+		$this->layout      = 'module.php';
 	}
 
 	public function __call( $name, $arguments ) {
@@ -27,7 +29,7 @@ abstract class PL_Module_Controller {
 		// $this->view_path = $this->get_view_path( $this->get_bootstrap('slug') . '/' . $name . '.php' );
 		// $this->errorlist_path = $this->get_view_path( '/helpers/errorlist.php' );
 
-		$this->set_view_file( '_' . $name . '.php' );
+		$this->set_view_file( $name . '.php' );
 
 		if( isset( $arguments ) ){
 			call_user_func_array( array(  $this, $name . '_action' ), $arguments );
@@ -53,8 +55,28 @@ abstract class PL_Module_Controller {
 		 * Some of these are mutually exclusive, e.g. if the layout or action are set then
 		 * json can't be. If one of the formats is set it means that none of the others can be.
 		 */
+
+		if( !empty( $args['layout'] ) ) {
+
+			$this->set_layout( $args['layout'] );
+			unset( $args['layout'] );
+
+			if( empty( $args ) ) {
+				return;
+			}
+		}
+
+		if( !empty( $args['action'] ) ) {
+
+			$this->set_layout( $args['layout'] );
+			unset( $args['action'] );
+
+			if( empty( $args ) ) {
+				return;
+			}
+		}
+
 		$defaults = array( 
-			'layout'       => '', 
 			'action'       => '',
 			'file'         => '',
 			'html'         => false,
@@ -68,12 +90,6 @@ abstract class PL_Module_Controller {
 		$args = $this->parse_render_args( $args );
 		$args = wp_parse_args( $args, $defaults );
 		$this->render_args = $args;
-/*
-		if( ! empty( $args['json'] ) ) {
-			$this->last_render = $args['json'];
-		} else {
-			$this->last_render = $this->view->render();
-		}*/
 	}
 
 
@@ -83,15 +99,12 @@ abstract class PL_Module_Controller {
 
 	private function parse_render_args( $args ) {
 		
-		if( !empty( $args['layout'] ) ) {
+		if ( !empty( $args['action'] ) ) {
+			//set view path
+		} 
 
-		} else if ( !empty( $args['action'] ) ) {
-
-		} else if ( !empty( $args['json'] ) ) {
-			$args['content_type'] = 'application/json';
-		}
+		return $args;
 	}
-
 
 	function compile_view() {
 		$this->last_render = $this->view->render();
@@ -107,16 +120,17 @@ abstract class PL_Module_Controller {
 		$view_path = strtolower( $r_class->getNamespaceName() );
 
 		if( stripos( get_called_class(), 'admin' ) === FALSE ){
-			$view_path .= '/public/views/' . $filename;
+			$view_path .= '/public/views/' . $this->get_name() . '/' . $filename;
 		} else{
-			$view_path .= '/admin/views/' . $filename;
+			$view_path .= '/admin/views/' .  $this->get_name() . '/' . $filename;
 		}
 
 		return $view_path;
 	}
 
 	protected function set_view_file( $filename ) {
-		
+
+		$this->view_template = $filename;		
 		$module_path = $this->module_view_path( $filename );
 		$plugin_path = $this->plugin_path . '/' . $module_path;
 		$theme_path  = get_stylesheet_directory() . '/' . $module_path;
@@ -140,7 +154,40 @@ abstract class PL_Module_Controller {
 	}
 
 	public function get_view_data() { 
-		return $this->view->get_data();
+		return $this->view;
 	}
 
+	public function set_layout( $layout ) { 
+		$this->layout = $layout . '.php';
+	}
+
+	public function get_layout() {
+		return $this->layout;
+	}
+
+	function get_name() {
+
+		if( isset( $this->name ) ) {
+			return $this->name;
+		}
+
+		$bits = explode( '_', substr( get_called_class(), strrpos( get_called_class(), '\\' ) + 1 ) );
+
+		$bits = array_filter( $bits, function( $var ) {
+
+			if( in_array( $var, array( 'Public', 'Admin', 'Controller' ) ) ) {
+				return false;
+			}
+
+			return true;
+		} );
+
+		$this->name = strtolower( implode( '-', $bits ) );
+
+		return $this->name;
+	}
+
+	public function get_view_template() {
+		return $this->view_template;
+	}
 }

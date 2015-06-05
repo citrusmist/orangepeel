@@ -54,19 +54,21 @@ class PL_Front_Controller {
 		return $headers;
 	}
 
-	public function load_layout( $route ) {
+	public function load_layout( $plugin_name ) {
 		
 		if( is_admin() ) {
 			return;
 		}
 
-		$plugin   = PL_Plugin_Registry::get_instance()->get( $route->plugin );
+		$layout = $this->controller->get_layout();
+
+		$plugin   = PL_Plugin_Registry::get_instance()->get( $plugin_name );
 		//Infer module name from namespace part of classname
-		$module   = strtolower( substr( $route->controller, 0, strrpos( $route->controller, '\\' ) ) );
+		$module   = strtolower( substr( get_class( $this->controller ), 0, strrpos( get_class( $this->controller ), '\\' ) ) );
 		
-		$template = $route->plugin . '/' . $module . '/template.php';
-		$fallback = $plugin['instance']->get_plugindir_path() . '/' . $module . '/public/views/template.php';
-		$tinc     = new PL_Template_Include( $template, $fallback );
+		$layout_path = $plugin_name . '/' . $module . '/layouts/' . $layout;
+		$fallback    = $plugin['instance']->get_plugindir_path() . '/' . $module . '/public/views/' . $layout;
+		$tinc        = new PL_Template_Include( $layout_path, $fallback );
 	}
 
 	public function dispatch_action( $route ) {
@@ -94,14 +96,42 @@ class PL_Front_Controller {
 					wp_send_json( $this->controller->get_view_data() );
 					break;
 				case 'html':
-					$this->load_layout( $route );
+					$this->load_layout( $route->plugin );
 				default:
-					$this->controller->compile_view();
+					$this->compile_view();
 					break;
 			}
 		} else {
-			//render based on args passed in from controller
+			
+			if( !empty( $r_args['status'] ) ) { 
+				status_header( $r_args['status'] );
+			}			
+
+			if( !empty( $r_args['json'] ) ) {
+				wp_send_json( $r_args['json'] );
+				return;
+			} 
 		}
+	}
+
+	public function template_path( $filename ) {
+		
+		$r_class   = new ReflectionClass( get_called_class() );
+		$view_path = strtolower( $r_class->getNamespaceName() );
+
+		if( stripos( get_called_class(), 'admin' ) === FALSE ){
+			$view_path .= '/public/views/' . $this->get_name() . '/' . $filename;
+		} else{
+			$view_path .= '/admin/views/' .  $this->get_name() . '/' . $filename;
+		}
+
+		return $view_path;
+	}
+
+	public function compile_view() {
+		$view = new PL_View();
+		$view->set_data( $this->controller->get_view_data() );
+		$view->set_path();
 	}
 
 	public function print_view() {
