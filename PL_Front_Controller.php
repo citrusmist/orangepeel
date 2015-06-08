@@ -9,6 +9,7 @@ class PL_Front_Controller {
 
 	protected $params;
 	protected $controller;
+	protected $compiled_view;
 	
 	private function __construct() {}
 
@@ -54,20 +55,18 @@ class PL_Front_Controller {
 		return $headers;
 	}
 
-	public function load_layout( $plugin_name ) {
+	public function load_layout( $plugin ) {
 		
 		if( is_admin() ) {
 			return;
 		}
 
 		$layout = $this->controller->get_layout();
-
-		$plugin   = PL_Plugin_Registry::get_instance()->get( $plugin_name );
 		//Infer module name from namespace part of classname
 		$module   = strtolower( substr( get_class( $this->controller ), 0, strrpos( get_class( $this->controller ), '\\' ) ) );
 		
-		$layout_path = $plugin_name . '/' . $module . '/layouts/' . $layout;
-		$fallback    = $plugin['instance']->get_plugindir_path() . '/' . $module . '/public/views/' . $layout;
+		$layout_path = $plugin->get_name() . '/' . $module . '/layouts/' . $layout;
+		$fallback    = $plugin->get_plugindir_path() . '/' . $module . '/public/views/' . $layout;
 		$tinc        = new PL_Template_Include( $layout_path, $fallback );
 	}
 
@@ -85,7 +84,10 @@ class PL_Front_Controller {
 	}
 
 	public function render( $route ) {
+
+		$plugin = PL_Plugin_Registry::get_instance()->get( $route->plugin );
 		$r_args = $this->controller->get_render_args();
+
 
 		if( $r_args === null ) {
 			log_me( __METHOD__ );
@@ -96,9 +98,9 @@ class PL_Front_Controller {
 					wp_send_json( $this->controller->get_view_data() );
 					break;
 				case 'html':
-					$this->load_layout( $route->plugin );
+					$this->load_layout( $plugin['instance'] );
 				default:
-					$this->compile_view();
+					$this->compile_view( $plugin['instance'] );
 					break;
 			}
 		} else {
@@ -114,27 +116,51 @@ class PL_Front_Controller {
 		}
 	}
 
-	public function template_path( $filename ) {
+
+	public function template_path( $plugin ) {
 		
-		$r_class   = new ReflectionClass( get_called_class() );
+		$r_class   = new ReflectionClass( $this->controller );
 		$view_path = strtolower( $r_class->getNamespaceName() );
+		$view_file = '';
 
 		if( stripos( get_called_class(), 'admin' ) === FALSE ){
-			$view_path .= '/public/views/' . $this->get_name() . '/' . $filename;
+			$plugin_path = strtolower( $r_class->getNamespaceName() ) . '/public/views/' . $this->controller->get_name() . '/' . $this->controller->get_view_template();
+			$theme_path  = strtolower( $r_class->getNamespaceName() ) . '/' . $this->controller->get_name() . '/' . $this->controller->get_view_template();
+			// $view_path .= '/public/views/' . $this->controller->get_name() . '/' . $this->controller->get_view_template();
 		} else{
-			$view_path .= '/admin/views/' .  $this->get_name() . '/' . $filename;
+			$plugin_path = strtolower( $r_class->getNamespaceName() ) . '/admin/views/' . $this->controller->get_name() . '/' . $this->controller->get_view_template();
+			// $theme_path  = strtolower( $r_class->getNamespaceName() ) . '/' . $this->controller->get_name() . '/' . $this->controller->get_view_template();
+			// $view_path .= '/admin/views/' .  $this->controller->get_name() . '/' . $this->controller->get_view_template();
 		}
 
-		return $view_path;
+		$plugin_path = $plugin->get_plugindir_path() . '/' . $plugin_path;;
+		$theme_path  = get_stylesheet_directory() . '/' . $plugin->get_name() . '/' . $theme_path;
+
+		//short circuit checking for presence of file in theme folder 
+		//in case it's an admin action
+		if( stripos( get_called_class(), 'admin' ) !== FALSE ){
+			$view_file = $plugin_path;
+		} else if ( file_exists( $theme_path ) ){
+			$view_file = $theme_path;
+		} else {
+			$view_file = $plugin_path;
+		}	
+
+		log_me( __METHOD__ );
+		log_me( $theme_path );
+
+		return $view_file;
 	}
 
-	public function compile_view() {
+
+	public function compile_view( $plugin ) {
 		$view = new PL_View();
-		$view->set_data( $this->controller->get_view_data() );
-		$view->set_path();
+		$view->set_data( (array) $this->controller->get_view_data() );
+		$view->set_path( $this->template_path( $plugin ) );
+		$this->compiled_view = $view->render();
 	}
 
 	public function print_view() {
-		echo $this->controller->get_render();
+		echo $this->compiled_view;
 	}
 }

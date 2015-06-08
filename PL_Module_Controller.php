@@ -16,7 +16,7 @@ abstract class PL_Module_Controller {
 		// $this->module = $module;
 		$this->params      = $params;
 		$this->plugin_path = $plugin_path;
-		$this->view        = new stdObject();
+		$this->view        = new stdClass();
 		$this->layout      = 'module.php';
 	}
 
@@ -29,7 +29,8 @@ abstract class PL_Module_Controller {
 		// $this->view_path = $this->get_view_path( $this->get_bootstrap('slug') . '/' . $name . '.php' );
 		// $this->errorlist_path = $this->get_view_path( '/helpers/errorlist.php' );
 
-		$this->set_view_file( $name . '.php' );
+		// $this->set_view_file( $name . '.php' );
+		$this->set_view_template( $name );
 
 		if( isset( $arguments ) ){
 			call_user_func_array( array(  $this, $name . '_action' ), $arguments );
@@ -185,6 +186,10 @@ abstract class PL_Module_Controller {
 		$this->name = strtolower( implode( '-', $bits ) );
 
 		return $this->name;
+	}
+
+	public function set_view_template( $template ) {
+		$this->view_template = $template . '.php';
 	}
 
 	public function get_view_template() {
