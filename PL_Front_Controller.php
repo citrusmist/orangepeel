@@ -119,16 +119,29 @@ class PL_Front_Controller {
 
 	public function template_path( $plugin ) {
 		
-		$r_class   = new ReflectionClass( $this->controller );
-		$view_path = strtolower( $r_class->getNamespaceName() );
+		$r_class       = new ReflectionClass( $this->controller );
+		$module        = strtolower( $r_class->getNamespaceName() );
+		$ctrl_name     = $this->controller->get_name();
+		$view_template = $this->controller->get_view_template();
+		$parts         = explode( '/', $view_template );
 		$view_file = '';
 
+
+		if( count( $parts ) === 2 ) {
+			$ctrl_name     = $parts[0];
+			$view_template = $parts[1];
+		} else if( count( $parts ) === 3 ) {
+			$module        = $parts[0];
+			$ctrl_name     = $parts[1];
+			$view_template = $parts[2];
+		}
+
 		if( stripos( get_called_class(), 'admin' ) === FALSE ){
-			$plugin_path = strtolower( $r_class->getNamespaceName() ) . '/public/views/' . $this->controller->get_name() . '/' . $this->controller->get_view_template();
-			$theme_path  = strtolower( $r_class->getNamespaceName() ) . '/' . $this->controller->get_name() . '/' . $this->controller->get_view_template();
+			$plugin_path = $module . '/public/views/' . $ctrl_name . '/' . $view_template;
+			$theme_path  = $module . '/' . $ctrl_name . '/' . $view_template;
 			// $view_path .= '/public/views/' . $this->controller->get_name() . '/' . $this->controller->get_view_template();
 		} else{
-			$plugin_path = strtolower( $r_class->getNamespaceName() ) . '/admin/views/' . $this->controller->get_name() . '/' . $this->controller->get_view_template();
+			$plugin_path = $module . '/admin/views/' . $ctrl_name . '/' . $view_template;
 			// $theme_path  = strtolower( $r_class->getNamespaceName() ) . '/' . $this->controller->get_name() . '/' . $this->controller->get_view_template();
 			// $view_path .= '/admin/views/' .  $this->controller->get_name() . '/' . $this->controller->get_view_template();
 		}
@@ -146,8 +159,9 @@ class PL_Front_Controller {
 			$view_file = $plugin_path;
 		}	
 
+
 		log_me( __METHOD__ );
-		log_me( $theme_path );
+		log_me( $view_file );
 
 		return $view_file;
 	}
