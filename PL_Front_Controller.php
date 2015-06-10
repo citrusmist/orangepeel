@@ -8,6 +8,8 @@ class PL_Front_Controller {
 	protected static $instance;
 
 	protected $params;
+	protected $controller;
+	protected $compiled_view;
 	
 	private function __construct() {}
 
@@ -23,21 +25,10 @@ class PL_Front_Controller {
 
 	public function register_callbacks() {
 		add_action( 'parse_request', array( $this, 'parse_request' ) );
-		add_action( 'peel_view', array( $this, 'render_view' ) );
+		add_action( 'peel_view', array( $this, 'print_view' ) );
+		add_filter( 'wp_headers', array( $this, 'wp_headers' ), 10, 2 );
 	}
 
-	/*
-	 * Check for presence of a specific request, request resolves(maps) to 
-	 * to an action call execute the corresponding method in the controller.
-	 * The view is injected later with static::get_slug() . '_view' action
-	 *
-	 * @TODO: Refactor
-	 * This probably can be simplified if we dont rely on static methods as much.
-	 * We could have a function check if the request has anything to do with 
-	 * this module during the 'wp' hook and store the result of this test. 
-	 * Subsequent actions need only check this and get data this way rather than 
-	 * always querying get_query_var
-	 */
 	public function parse_request( $wp ) {
 
 		$route     = PL_Router::get_instance()->resolve( $wp );
@@ -55,36 +46,85 @@ class PL_Front_Controller {
 		log_me( __METHOD__ );
 		log_me( $this->params );
 
-		$this->load_template( $route );
+		$this->dispatch_action( $route );
+		$this->render( $route );
 	}
 
-	public function load_template( $route ) {
+	public function wp_headers( $headers, $wp ) {
+		$r_args = $this->controller->get_render_args();
+		
+		if( isset( $r_args['content-type'] ) ) {
+			$headers['Content-Type'] = $r_args['content-type'] . '; charset=' . get_option('blog_charset');
+		}
+
+		return $headers;
+	}
+
+	public function load_layout( $plugin ) {
 		
 		if( is_admin() ) {
 			return;
 		}
 
-		$plugin   = PL_Plugin_Registry::get_instance()->get( $route->plugin );
+		$layout = $this->controller->get_layout();
 		//Infer module name from namespace part of classname
-		$module   = strtolower( substr( $route->controller, 0, strrpos( $route->controller, '\\' ) ) );
+		$module   = strtolower( substr( get_class( $this->controller ), 0, strrpos( get_class( $this->controller ), '\\' ) ) );
 		
-		$template = $route->plugin . '/' . $module . '/template.php';
-		$fallback = $plugin['instance']->get_plugindir_path() . '/' . $module . '/public/views/template.php';
-		$tinc     = new PL_Template_Include( $template, $fallback );
+		$layout_path = $plugin->get_name() . '/' . $module . '/layouts/' . $layout;
+		$fallback    = $plugin->get_plugindir_path() . '/' . $module . '/public/views/' . $layout;
+		$tinc        = new PL_Template_Include( $layout_path, $fallback );
 	}
 
-	public function render_view() {
+	public function dispatch_action( $route ) {
 
-		$route  = PL_Router::get_instance()->get_current();
+		// $route  = PL_Router::get_instance()->get_current();
 		$plugin = PL_Plugin_Registry::get_instance()->get( $route->plugin );
 
 		if( is_callable( $route->controller, $route->action ) ) {
-			$controller = new $route->controller( $this->params, $plugin['instance']->get_path() );
-			$controller->{$route->action}();
-			echo $controller->render();
+			$this->controller = new $route->controller( $this->params );
+			$this->controller->{$route->action}();
 		} else {
 			log_me('bastard');
 		}
 	}
 
+	public function render( $route ) {
+
+		$plugin = PL_Plugin_Registry::get_instance()->get( $route->plugin );
+		$r_args = $this->controller->get_render_args();
+
+		if( $r_args === null ) {
+			log_me( __METHOD__ );
+
+			if( $this->params['format'] == 'json' ) {
+				wp_send_json( $this->controller->get_view_data() );
+				return;
+			}
+
+		} else {
+			
+			if( !empty( $r_args['status'] ) ) { 
+				status_header( $r_args['status'] );
+			}			
+
+			if( !empty( $r_args['json'] ) ) {
+				wp_send_json( $r_args['json'] );
+				return;
+			} 
+		}
+
+		$this->load_layout( $plugin['instance'] );
+		$this->compile_view( $plugin['instance'] );
+	}
+
+	public function compile_view( $plugin ) {
+		$view = new PL_View();
+		$view->set_data( (array) $this->controller->get_view_data() );
+		$view->set_path( $this->controller->template_path( $plugin ) );
+		$this->compiled_view = $view->compile();
+	}
+
+	public function print_view() {
+		echo $this->compiled_view;
+	}
 }

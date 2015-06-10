@@ -9,7 +9,7 @@ class PL_View {
 		$this->_data = array();
 	}
 
-	public function render(){
+	public function compile() {
 		return self::render_tmpl( $this->_path, $this->_data );
 	}
 
@@ -18,7 +18,11 @@ class PL_View {
 	}
 
 	public function set_data( array $data ){
-		$this->_data = array_merge( $this->_data, $data);
+		$this->_data = array_merge( $this->_data, $data );
+	}
+
+	public function get_data(){
+		return $this->_data;
 	}
 
 	public function __get( $name ) {
