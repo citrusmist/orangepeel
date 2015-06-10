@@ -84,7 +84,8 @@ class PL_Front_Controller {
 			$this->controller = new $route->controller( $this->params );
 			$this->controller->{$route->action}();
 		} else {
-			log_me('bastard');
+			//TODO throw an exception
+			error_log( "{$route->action} action in {$route->controller} controller doesn't exist!" );
 		}
 	}
 
