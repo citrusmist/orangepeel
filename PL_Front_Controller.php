@@ -51,7 +51,12 @@ class PL_Front_Controller {
 	}
 
 	public function wp_headers( $headers, $wp ) {
-		log_me( $headers );
+		$r_args = $this->controller->get_render_args();
+		
+		if( isset( $r_args['content-type'] ) ) {
+			$headers['Content-Type'] = $r_args['content-type'] . '; charset=' . get_option('blog_charset');
+		}
+
 		return $headers;
 	}
 
@@ -76,7 +81,7 @@ class PL_Front_Controller {
 		$plugin = PL_Plugin_Registry::get_instance()->get( $route->plugin );
 
 		if( is_callable( $route->controller, $route->action ) ) {
-			$this->controller = new $route->controller( $this->params, $plugin['instance']->get_path() );
+			$this->controller = new $route->controller( $this->params );
 			$this->controller->{$route->action}();
 		} else {
 			log_me('bastard');
@@ -88,21 +93,14 @@ class PL_Front_Controller {
 		$plugin = PL_Plugin_Registry::get_instance()->get( $route->plugin );
 		$r_args = $this->controller->get_render_args();
 
-
 		if( $r_args === null ) {
 			log_me( __METHOD__ );
 
-			switch ( $this->params['format'] ) {
-				case 'json':
-					log_me( $this->controller );
-					wp_send_json( $this->controller->get_view_data() );
-					break;
-				case 'html':
-					$this->load_layout( $plugin['instance'] );
-				default:
-					$this->compile_view( $plugin['instance'] );
-					break;
+			if( $this->params['format'] == 'json' ) {
+				wp_send_json( $this->controller->get_view_data() );
+				return;
 			}
+
 		} else {
 			
 			if( !empty( $r_args['status'] ) ) { 
@@ -114,63 +112,15 @@ class PL_Front_Controller {
 				return;
 			} 
 		}
+
+		$this->load_layout( $plugin['instance'] );
+		$this->compile_view( $plugin['instance'] );
 	}
-
-
-	public function template_path( $plugin ) {
-		
-		$r_class       = new ReflectionClass( $this->controller );
-		$module        = strtolower( $r_class->getNamespaceName() );
-		$ctrl_name     = $this->controller->get_name();
-		$view_template = $this->controller->get_view_template();
-		$parts         = explode( '/', $view_template );
-		$view_file = '';
-
-
-		if( count( $parts ) === 2 ) {
-			$ctrl_name     = $parts[0];
-			$view_template = $parts[1];
-		} else if( count( $parts ) === 3 ) {
-			$module        = $parts[0];
-			$ctrl_name     = $parts[1];
-			$view_template = $parts[2];
-		}
-
-		if( stripos( get_called_class(), 'admin' ) === FALSE ){
-			$plugin_path = $module . '/public/views/' . $ctrl_name . '/' . $view_template;
-			$theme_path  = $module . '/' . $ctrl_name . '/' . $view_template;
-			// $view_path .= '/public/views/' . $this->controller->get_name() . '/' . $this->controller->get_view_template();
-		} else{
-			$plugin_path = $module . '/admin/views/' . $ctrl_name . '/' . $view_template;
-			// $theme_path  = strtolower( $r_class->getNamespaceName() ) . '/' . $this->controller->get_name() . '/' . $this->controller->get_view_template();
-			// $view_path .= '/admin/views/' .  $this->controller->get_name() . '/' . $this->controller->get_view_template();
-		}
-
-		$plugin_path = $plugin->get_plugindir_path() . '/' . $plugin_path;;
-		$theme_path  = get_stylesheet_directory() . '/' . $plugin->get_name() . '/' . $theme_path;
-
-		//short circuit checking for presence of file in theme folder 
-		//in case it's an admin action
-		if( stripos( get_called_class(), 'admin' ) !== FALSE ){
-			$view_file = $plugin_path;
-		} else if ( file_exists( $theme_path ) ){
-			$view_file = $theme_path;
-		} else {
-			$view_file = $plugin_path;
-		}	
-
-
-		log_me( __METHOD__ );
-		log_me( $view_file );
-
-		return $view_file;
-	}
-
 
 	public function compile_view( $plugin ) {
 		$view = new PL_View();
 		$view->set_data( (array) $this->controller->get_view_data() );
-		$view->set_path( $this->template_path( $plugin ) );
+		$view->set_path( $this->controller->template_path( $plugin ) );
 		$this->compiled_view = $view->render();
 	}
 
