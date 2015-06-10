@@ -9,7 +9,7 @@ class PL_View {
 		$this->_data = array();
 	}
 
-	public function render(){
+	public function compile() {
 		return self::render_tmpl( $this->_path, $this->_data );
 	}
 

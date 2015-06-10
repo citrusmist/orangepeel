@@ -121,7 +121,7 @@ class PL_Front_Controller {
 		$view = new PL_View();
 		$view->set_data( (array) $this->controller->get_view_data() );
 		$view->set_path( $this->controller->template_path( $plugin ) );
-		$this->compiled_view = $view->render();
+		$this->compiled_view = $view->compile();
 	}
 
 	public function print_view() {
