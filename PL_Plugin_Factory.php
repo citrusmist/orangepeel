@@ -1,7 +1,7 @@
 <?php 
 
 abstract class PL_Plugin_Factory {
-	
+
 	/**
 	 * Holds names of all modules to be used by the plugin
 	 *
@@ -118,10 +118,10 @@ abstract class PL_Plugin_Factory {
 	public static function activate() {
 		
 		$instance        = static::get_instance();
-		$mods            = $instance->get_modules();
 		$activator_class = substr_replace( get_called_class(), '_Activator',  strrpos( get_called_class(), '_' ) );
 		$plugin_class    = $instance->get_plugin_class(); 
 		$plugin          = new $plugin_class( '', $instance->get_plugindir_path(), \PL_Router::get_instance() );
+		$mods            = $instance->get_modules( $plugin );
 		
 		//Plugin deactivator
 		if( method_exists( $activator_class, 'activate' ) ) {
@@ -147,10 +147,10 @@ abstract class PL_Plugin_Factory {
 	public static function deactivate() {
 
 		$instance          = static::get_instance();
-		$mods              = $instance->get_modules();
 		$deactivator_class = substr_replace( get_called_class(), '_Activator',  strrpos( get_called_class(), '_' ) );
 		$plugin_class      = $instance->get_plugin_class(); 
 		$plugin            = new $plugin_class( '', $instance->get_plugindir_path(), \PL_Router::get_instance() );
+		$mods              = $instance->get_modules( $plugin );
 
 		//Plugin deactivator
 		if( method_exists( $deactivator_class, 'deactivate' ) ) {
@@ -237,8 +237,9 @@ abstract class PL_Plugin_Factory {
 		return $this->plugindir_path;
 	}
 
-	public function get_modules() {
-		return $this->modules;
+	public function get_modules( $plugin ) {
+		$registry = PL_Plugin_Registry::get_instance()->get( $plugin->get_name() );
+		return $registry['modules'];
 	}
 
 	/**
@@ -257,7 +258,7 @@ abstract class PL_Plugin_Factory {
 		}
 
 		// If the static instance hasn't been set, set it now.
-		if ( null == static::$instance ) {
+		if ( null === static::$instance ) {
 			static::$instance = new static;
 			$reflector = new ReflectionClass( get_called_class() );
 

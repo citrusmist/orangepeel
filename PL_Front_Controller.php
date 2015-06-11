@@ -5,16 +5,17 @@
 */
 class PL_Front_Controller {
 
-	protected static $instance;
+	protected static $instance = null;
 
 	protected $params;
 	protected $controller;
 	protected $compiled_view;
+	protected $is_peel_request = false;
 	
 	private function __construct() {}
 
 	public static function get_instance() {
-		if ( ! self::$instance ) {
+		if ( null === self::$instance ) {
 			self::$instance = new self();
 			//README should this be in the constructor
 			self::$instance->register_callbacks();
@@ -34,9 +35,12 @@ class PL_Front_Controller {
 		$route     = PL_Router::get_instance()->resolve( $wp );
 		$wp_params = array();
 
-		if ( $route == false ) { 
+		if ( $route == false ) {
+			$this->is_peel_request = false;
 			return;
 		}
+
+		$this->is_peel_request = true;
 
 		parse_str( stripslashes( $wp->matched_query ), $wp_params );
 
@@ -51,6 +55,11 @@ class PL_Front_Controller {
 	}
 
 	public function wp_headers( $headers, $wp ) {
+
+		if( ! $this->is_peel_request ) {
+			return $headers;
+		}
+
 		$r_args = $this->controller->get_render_args();
 		
 		if( isset( $r_args['content-type'] ) ) {
