@@ -1,15 +1,12 @@
 <?php 
-/* PL_Controller to become PL_Module_Controller */
 
-abstract class PL_Module_Controller {
+abstract class PL_Action_Controller {
 
 	protected $name;
-	protected $view           = null;
-	protected $layout         = null;
-	protected $view_template  = null;
-	protected $view_path      = null;
-	protected $last_render    = null;
-	protected $render_args    = null;
+	protected $view;
+	protected $layout;
+	protected $view_path;
+	protected $render_args;
 
 	public function __construct( $params ) {
 		// $this->module = $module;
@@ -48,11 +45,7 @@ abstract class PL_Module_Controller {
 	 * Rails mixes execution and configuration in one method, but since we are in WP 
 	 * we might have do it differently
 	 */
-	public function render( $args ) {
-		/*
-		 * Some of these are mutually exclusive, e.g. if the layout or action are set then
-		 * json can't be. If one of the formats is set it means that none of the others can be.
-		 */
+	/*public function render( $args ) {
 
 		$defaults = array( 
 			'file'         => '',
@@ -80,7 +73,9 @@ abstract class PL_Module_Controller {
 
 		$args = wp_parse_args( $args, $defaults );
 		$this->render_args = $args;
-	}
+	}*/
+
+	abstract public function render( $args );
 
 	public function get_render_args() {
 		return $this->render_args;
