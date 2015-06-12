@@ -11,7 +11,7 @@
 
 class PL_Router {
 
-	protected static $instance;
+	protected static $instance = null;
 
 	protected $routes     = array();
 	
@@ -29,7 +29,7 @@ class PL_Router {
 	}
 
 	public static function get_instance() {
-		if ( ! self::$instance ) {
+		if ( self::$instance === null ) {
       self::$instance = new self();
     }
 
