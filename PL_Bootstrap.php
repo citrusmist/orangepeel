@@ -12,22 +12,16 @@
 
 abstract class PL_Bootstrap {
 
-	//Module Controller a la Rails Application Controller
-	protected $controller;
-
 	protected $plugin;
 
 	protected $cpts = array();
 
-	public function __construct( $plugin ) {
+	protected $page_factory;
 
-		//README: Instead of a Module Controller should we just have a singleton
-		//front controller which we can configure withing the module bootstrap, 
-		//so that dependency is inverted. We could just pass the endpoint, module slug,
-		//controller(optional) name and action name(options)
-		//If not optional args passed default behaviour assumed
-		// $this->controller = new PL_Module_Controller( $this );
-		$this->plugin = $plugin;
+	public function __construct( $plugin ) {
+		
+		$this->plugin       = $plugin;
+		$this->page_factory = \PL_Admin_Page_Factory::get_instance();
 
 		$this->init();
 
@@ -40,7 +34,7 @@ abstract class PL_Bootstrap {
 	 * the class name minus the '_Bootstrap'. For example
 	 * AP_Users_Bootstrap defaults to slug being 'ap-users '
 	 */
-	public static function get_slug(){
+	public static function get_slug() {
 
 		if( defined ( get_called_class() . '::SLUG' ) ){
 			return constant( get_called_class() . '::SLUG' );
@@ -59,6 +53,16 @@ abstract class PL_Bootstrap {
 		}
 	}
 
+	public function admin_resource( $name, $args = array() ) {
+		
+		$defaults = array(
+			'controller' => \PL_Inflector::default_ctrl_class( 'performances', $this, 'admin' )
+		);
+
+		$args = wp_parse_args( $args, $defaults );
+
+		$this->page_factory->resource( $name, $args );
+	}
 
 	/*
 	 * README

@@ -54,3 +54,5 @@ require_once( plugin_dir_path( __FILE__ ) . 'PL_Front_Controller.php' );
 require_once( plugin_dir_path( __FILE__ ) . 'PL_Module_Controller.php' );
 // require_once( plugin_dir_path( __FILE__ ) . 'PL_Controller.php' );
 require_once( plugin_dir_path( __FILE__ ) . 'PL_Bootstrap.php' );
+require_once( plugin_dir_path( __FILE__ ) . 'PL_Admin_Page_Factory.php' );
+

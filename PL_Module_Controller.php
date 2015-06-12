@@ -22,7 +22,7 @@ abstract class PL_Module_Controller {
 
 	public function __call( $name, $arguments ) {
 
-		if ( !method_exists( $this, $name . '_action' ) ){
+		if ( !method_exists( $this, $name . '_action' ) ) {
 			return $name . " method doesn't exist!";
 		}
 
