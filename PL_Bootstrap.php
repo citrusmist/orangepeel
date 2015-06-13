@@ -56,7 +56,8 @@ abstract class PL_Bootstrap {
 	public function admin_resource( $name, $args = array() ) {
 		
 		$defaults = array(
-			'controller' => \PL_Inflector::default_ctrl_class( 'performances', $this, 'admin' )
+			'controller' => \PL_Inflector::default_ctrl_class( 'performances', $this, 'admin' ),
+			'plugin'     => $this->plugin->get_name()
 		);
 
 		$args = wp_parse_args( $args, $defaults );

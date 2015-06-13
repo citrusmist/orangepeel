@@ -54,10 +54,47 @@ class PL_Admin_Page_Factory {
 				$name_titleized,
 				$args['capability'],
 				$name,
-				array( $args['controller'], 'index' ),
+				function() use( &$args ) {
+					$fc = \PL_Front_Controller::get_instance();
+					$fc->dispatch( (object) array(
+						'controller' => $args['controller'], 
+						'action'     => 'index' 
+					) );
+					$fc->render( $args['plugin'] );
+				},
 				$args['menu_icon'],
 				$args['menu_position']
 			);
+
+			foreach( $this->resource_actions as $action => $props ) {
+				
+				switch ( $action ) {
+					case 'index':
+						$submenu_title = 'All ' . $name_titleized;
+						break;
+					case 'new':
+						$submenu_title = 'Add New';
+						break;
+					default:
+						break;
+				}
+
+				add_submenu_page( 
+					$name, 
+					$submenu_title, 
+					$submenu_title, 
+					$args['capability'], 
+					$name . '_' . $props['path'], 
+					function () use( &$args, &$name ) {
+						$fc = \PL_Front_Controller::get_instance();
+						$fc->dispatch( (object) array(
+							'controller' => $args['controller'], 
+							'action'     => 'index' 
+						) );
+						$fc->render( $args['plugin'] );
+					}
+				);
+			}
 		}
 
 	}
