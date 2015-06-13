@@ -34,4 +34,20 @@ abstract class PL_Public_Controller extends PL_Action_Controller {
 		$args = wp_parse_args( $args, $defaults );
 		$this->render_args = $args;
 	}
+
+	public function template_path( $plugin ) {
+		
+		$theme_path  = $this->view_path->theme( $plugin );
+		$plugin_path = $this->view_path->plugin_public( $plugin );
+		$path        = false;
+
+		if( file_exists( $theme_path ) ) {
+			$path = $theme_path;
+		} else {
+			$path = $plugin_path;
+		}
+
+		return $path;
+
+	}
 }

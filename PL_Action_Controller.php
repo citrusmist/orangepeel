@@ -10,11 +10,11 @@ abstract class PL_Action_Controller {
 
 	public function __construct( $params ) {
 		// $this->module = $module;
-		$r_class           = new ReflectionClass( $this );
-		$this->params      = $params;
-		$this->view        = new stdClass();
-		$this->layout      = 'module.php';
-		$this->view_path   = new \PL_View_Path( strtolower( $r_class->getNamespaceName() ), $this->get_name() );
+		$r_class         = new ReflectionClass( $this );
+		$this->params    = $params;
+		$this->view      = new stdClass();
+		$this->layout    = 'module.php';
+		$this->view_path = new \PL_View_Path( strtolower( $r_class->getNamespaceName() ), $this->get_name() );
 	}
 
 	public function __call( $name, $arguments ) {
@@ -23,7 +23,6 @@ abstract class PL_Action_Controller {
 			return $name . " method doesn't exist!";
 		}
 
-		// $this->set_view_file( $name . '.php' );
 		$this->set_view_template( $name );
 
 		if( isset( $arguments ) ){
@@ -32,48 +31,6 @@ abstract class PL_Action_Controller {
 			call_user_func( array(  $this, $name . '_action' ) );
 		}
 	}
-
-/*	public function render() {
-		$this->last_render = $this->view->render();
-		return $this->last_render;
-	}*/
-
-	/*
-	 * README Seems as these should be two separate things. One configures the render
-	 * and one executes it. The controller actions should be able to configure it the render
-	 * but I'm not sure if also executing it in one step is good practice...
-	 * Rails mixes execution and configuration in one method, but since we are in WP 
-	 * we might have do it differently
-	 */
-	/*public function render( $args ) {
-
-		$defaults = array( 
-			'file'         => '',
-			'html'         => false,
-			'json'         => false,
-			'xml'          => false,
-			'plain'        => '',
-			'status'       => '',
-			'content-type' => ''
-		);
-
-		if( !empty( $args['layout'] ) ) {
-			$this->set_layout( $args['layout'] );
-			unset( $args['layout'] );
-		}
-
-		if( !empty( $args['action'] ) ) {
-			$this->set_view_template( $args['action'] );
-			unset( $args['action'] );
-		}
-		
-		if( empty( $args ) ) {
-			return;
-		}
-
-		$args = wp_parse_args( $args, $defaults );
-		$this->render_args = $args;
-	}*/
 
 	abstract public function render( $args );
 
@@ -123,22 +80,5 @@ abstract class PL_Action_Controller {
 		$this->view_path->set_template( $template . '.php' );
 	}
 
-	public function template_path( $plugin ) {
-
-		if( stripos( get_called_class(), 'admin' ) !== FALSE ) {
-			return $this->view_path->plugin_admin( $plugin );
-		}
-
-		$theme_path  = $this->view_path->theme( $plugin );
-		$plugin_path = $this->view_path->plugin_public( $plugin );
-		$path        = false;
-
-		if( file_exists( $theme_path ) ) {
-			$path = $theme_path;
-		} else {
-			$path = $plugin_path;
-		}
-
-		return $path;
-	}
+	abstract public function template_path( $plugin );
 }

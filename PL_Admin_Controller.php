@@ -1,6 +1,6 @@
 <?php 
 
-abstract class PL_Controller_Admin extends PL_Action_Controller {
+abstract class PL_Admin_Controller extends PL_Action_Controller {
 
 	public function render( $args ) {
 
@@ -26,5 +26,9 @@ abstract class PL_Controller_Admin extends PL_Action_Controller {
 
 		$args = wp_parse_args( $args, $defaults );
 		$this->render_args = $args;
+	}
+
+	public function template_path( $plugin ) {
+		return $this->view_path->plugin_admin( $plugin );
 	}
 }
