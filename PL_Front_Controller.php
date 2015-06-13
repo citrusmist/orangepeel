@@ -5,7 +5,7 @@
 */
 class PL_Front_Controller {
 
-	protected static $instance = null;
+	protected static $instance = false;
 
 	protected $params;
 	protected $controller;
@@ -15,7 +15,8 @@ class PL_Front_Controller {
 	private function __construct() {}
 
 	public static function get_instance() {
-		if ( null === self::$instance ) {
+		if ( false === self::$instance ) {
+
 			self::$instance = new self();
 			//README should this be in the constructor
 			self::$instance->register_callbacks();
@@ -35,7 +36,7 @@ class PL_Front_Controller {
 		$route     = PL_Router::get_instance()->resolve( $wp );
 		$wp_params = array();
 
-		if ( $route == false ) {
+		if ( $route == false || is_admin() ) {
 			$this->is_peel_request = false;
 			return;
 		}
@@ -47,10 +48,9 @@ class PL_Front_Controller {
 		$this->params = new \PL_Params( $wp_params );
 		$this->params->set_defaults( array_merge( array( 'format' => 'html' ), $route->defaults ) );
 
-		log_me( __METHOD__ );
 		log_me( $this->params );
 
-		$this->dispatch_action( $route );
+		$this->dispatch( $route );
 		$this->render( $route );
 	}
 
@@ -70,24 +70,22 @@ class PL_Front_Controller {
 	}
 
 	public function load_layout( $plugin ) {
-		
-		if( is_admin() ) {
-			return;
-		}
 
 		$layout = $this->controller->get_layout();
 		//Infer module name from namespace part of classname
 		$module   = strtolower( substr( get_class( $this->controller ), 0, strrpos( get_class( $this->controller ), '\\' ) ) );
-		
-		$layout_path = $plugin->get_name() . '/' . $module . '/layouts/' . $layout;
-		$fallback    = $plugin->get_plugindir_path() . '/' . $module . '/public/views/' . $layout;
-		$tinc        = new PL_Template_Include( $layout_path, $fallback );
+
+		if( is_admin() ) {
+			$admin = $plugin->get_plugindir_path() . '/' . $module . '/admin/views/layouts/' . $layout;
+			require $admin;
+		} else {
+			$public          = $plugin->get_name() . '/' . $module . '/layouts/' . $layout;
+			$public_fallback = $plugin->get_plugindir_path() . '/' . $module . '/public/views/layouts/' . $layout;
+			$tinc            = new PL_Template_Include( $public, $public_fallback );
+		}
 	}
 
-	public function dispatch_action( $route ) {
-
-		// $route  = PL_Router::get_instance()->get_current();
-		$plugin = PL_Plugin_Registry::get_instance()->get( $route->plugin );
+	public function dispatch( $route ) {
 
 		if( is_callable( $route->controller, $route->action ) ) {
 			$this->controller = new $route->controller( $this->params );
@@ -98,9 +96,9 @@ class PL_Front_Controller {
 		}
 	}
 
-	public function render( $route ) {
+	public function render( $plugin ) {
 
-		$plugin = PL_Plugin_Registry::get_instance()->get( $route->plugin );
+		$plugin = PL_Plugin_Registry::get_instance()->get( $plugin );
 		$r_args = $this->controller->get_render_args();
 
 		if( $r_args === null ) {
@@ -123,8 +121,10 @@ class PL_Front_Controller {
 			} 
 		}
 
-		$this->load_layout( $plugin['instance'] );
+		//README view has to be compiled before the layout is loaded
+		//otherwise admin acitons won't render anything
 		$this->compile_view( $plugin['instance'] );
+		$this->load_layout( $plugin['instance'] );
 	}
 
 	public function compile_view( $plugin ) {
@@ -135,6 +135,7 @@ class PL_Front_Controller {
 	}
 
 	public function print_view() {
+		log_me( $this );
 		echo $this->compiled_view;
 	}
 }
