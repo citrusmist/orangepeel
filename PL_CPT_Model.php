@@ -8,15 +8,9 @@ abstract class PL_CPT_Model extends PL_Model {
 	
 	protected $_post;
 	protected $_post_format;
-	protected $_errors = array();
-	protected $_validatable_props = array();
 	protected $_file_props = null;
 
-	protected $_new_record     = false;
-	protected $_changed_record = false;
-
-	protected static $_data_desc = null;
-
+	// protected static $_data_desc = null;
 
 	function __construct( $data = null ) {
 
@@ -227,18 +221,7 @@ abstract class PL_CPT_Model extends PL_Model {
 	}
 
 	
-	public static function get_data_description() {
-
-		if ( self::$_data_desc === null ){
-			static::$_data_desc = static::describe_data();
-		}
-
-		return static::$_data_desc;
-	}
-
-
 	// abstract protected static function describe_data();
-
 
 	public function save() {
 

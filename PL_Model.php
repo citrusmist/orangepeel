@@ -7,6 +7,8 @@ abstract class PL_Model implements PL_Recordable, PL_Validatable {
 
 	protected $_errors         = array();
 	protected $_changed_record = false;
+	protected $_new_record     = false;
+	protected $_validatable_props = array();
 
 	/*
 	 * README: The methods defined below shouldn't be
@@ -22,13 +24,9 @@ abstract class PL_Model implements PL_Recordable, PL_Validatable {
 	
 	// abstract protected static function describe_data();
 
-	abstract public function save();
+	// abstract public function save();
 
-	abstract public function delete();
-	
-	public static function get_data_description() {
-		return static::describe_data();
-	}
+	// abstract public function delete();
 
 
 	public function has_errors() {
@@ -43,6 +41,15 @@ abstract class PL_Model implements PL_Recordable, PL_Validatable {
 		} else {
 			return false;
 		}
+	}
+
+	public static function get_data_description() {
+
+		if ( self::$_data_desc === null ){
+			static::$_data_desc = static::describe_data();
+		}
+
+		return static::$_data_desc;
 	}
 
 

@@ -4,13 +4,8 @@
  * 
  */
 
-abstract class PL_Std_Model implements PL_Recordable, PL_Validatable {
+abstract class PL_Std_Model extends PL_Model {
 	
-	protected $_errors = array();
-
-	private $_new_record = false;
-	private $_changed_record = false;
-
 	public function __construct( $props = array() ) {
 		
 		$assocs = static::get_data_associations();
