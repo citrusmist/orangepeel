@@ -65,38 +65,6 @@ abstract class PL_Bootstrap {
 		$this->page_factory->resource( $name, $args );
 	}
 
-	/*
-	 * README
-	 * Not sure if this belongs in Bootstrap class, feels like it maybe should be somewhere else...
-	 * perhaps some kind of route factory and route resolver type of thing
-	 */
-	/*public function generate_cpt_builtin_routes( $slug, $args, $actions ) {
-		
-		$qv = array(
-			'post_type' => $slug
-		);
-
-		if( $args['public'] === false || $args['rewrite'] === false ) {
-			return;
-		}
-
-		$this->plugin->add_cpt_builtin_route( 
-			$args['rewrite']['slug'] . '/{:slug}', 
-			$actions['show'], 
-			array_merge( $qv, array(
-				'name' => ''
-			) 
-		) );
-
-		if( $args['has_archive'] !== false ) {
-			$this->plugin->add_cpt_builtin_route( 
-				$args['has_archive'] === true ? $slug : $args['has_archive'], 
-				$actions['index'], 
-				$qv 
-			);
-		}
-	}*/
-
 	public function add_cpt( $slug, $args, $controller = 'default' ) {
 
 		$plugin_slug = $this->plugin->get_name();
