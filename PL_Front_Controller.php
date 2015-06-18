@@ -51,7 +51,7 @@ class PL_Front_Controller {
 		log_me( $this->params );
 
 		$this->dispatch( $route );
-		$this->render( $route );
+		$this->render( $route->plugin );
 	}
 
 	public function wp_headers( $headers, $wp ) {
@@ -96,9 +96,9 @@ class PL_Front_Controller {
 		}
 	}
 
-	public function render( $plugin ) {
+	public function render( $plugin_name ) {
 
-		$plugin = PL_Plugin_Registry::get_instance()->get( $plugin );
+		$plugin = PL_Plugin_Registry::get_instance()->get( $plugin_name );
 		$r_args = $this->controller->get_render_args();
 
 		if( $r_args === null ) {
