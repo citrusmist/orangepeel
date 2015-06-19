@@ -78,6 +78,7 @@ class PL_Front_Controller {
 		if( is_admin() ) {
 			$admin = $plugin->get_plugindir_path() . '/' . $module . '/admin/views/layouts/' . $layout;
 			require $admin;
+			PL_JS_Template_Include::get_instance()->register_templates( $this->controller->get_js_tmpls(), $plugin->get_plugindir_path() . '/' . $module . '/admin/views/' . $module);
 		} else {
 			$public          = $plugin->get_name() . '/' . $module . '/layouts/' . $layout;
 			$public_fallback = $plugin->get_plugindir_path() . '/' . $module . '/public/views/layouts/' . $layout;
@@ -135,7 +136,6 @@ class PL_Front_Controller {
 	}
 
 	public function print_view() {
-		log_me( $this );
 		echo $this->compiled_view;
 	}
 }

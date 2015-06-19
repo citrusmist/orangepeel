@@ -29,6 +29,7 @@ require_once( plugin_dir_path( __FILE__ ) . 'PL_Plugin_Factory.php' );
 require_once( plugin_dir_path( __FILE__ ) . 'PL_Plugin_Loader.php' );
 require_once( plugin_dir_path( __FILE__ ) . 'PL_Plugin_i18n.php' );
 require_once( plugin_dir_path( __FILE__ ) . 'PL_Template_Include.php' );
+require_once( plugin_dir_path( __FILE__ ) . 'PL_JS_Template_Include.php' );
 require_once( plugin_dir_path( __FILE__ ) . 'PL_Recordable.php' );
 require_once( plugin_dir_path( __FILE__ ) . 'PL_Validatable.php' );
 require_once( plugin_dir_path( __FILE__ ) . 'PL_Dispatcher.php' );
