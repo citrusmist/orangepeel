@@ -40,6 +40,10 @@ class PL_User_Model extends PL_Model {
 		$this->_user = new WP_User( $this->_data );
 	}
 
+	public static function get_current() {
+		return new self( wp_get_current_user() );
+	}
+
 	public function save() {
 		# code...
 	}
