@@ -28,7 +28,13 @@ class PL_Front_Controller {
 	public function register_callbacks() {
 		add_action( 'parse_request', array( $this, 'parse_request' ) );
 		add_action( 'peel_view', array( $this, 'print_view' ) );
+
+		add_action( 'wp_head',    array( $this, 'wp_head' ) );
+		add_action( 'admin_head', array( $this, 'wp_head' ) );
+
 		add_filter( 'wp_headers', array( $this, 'wp_headers' ), 10, 2 );
+
+
 	}
 
 	public function parse_request( $wp ) {
@@ -133,6 +139,10 @@ class PL_Front_Controller {
 		$view->set_data( (array) $this->controller->get_view_data() );
 		$view->set_path( $this->controller->template_path( $plugin ) );
 		$this->compiled_view = $view->compile();
+	}
+
+	public function wp_head() {
+		echo '<meta name="PL-CSRF" content="' . wp_create_nonce( 'pl-action' ) . '">';
 	}
 
 	public function print_view() {
