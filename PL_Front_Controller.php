@@ -33,8 +33,6 @@ class PL_Front_Controller {
 		add_action( 'admin_head', array( $this, 'wp_head' ) );
 
 		add_filter( 'wp_headers', array( $this, 'wp_headers' ), 10, 2 );
-
-
 	}
 
 	public function parse_request( $wp ) {

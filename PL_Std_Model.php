@@ -317,7 +317,6 @@ abstract class PL_Std_Model extends PL_Model {
 		return $result;
 	}
 
-
 	/*
 	 * FIXME for now we are assuming that if this method is called
 	 * associations need to be saved. THIS IS WRONG 
@@ -467,9 +466,6 @@ abstract class PL_Std_Model extends PL_Model {
 	}
 
 
-	/*
-	 * FIXME: Make sure this is the desired login
-	 */
 	protected static function get_table_name() {
 
 		global $wpdb;

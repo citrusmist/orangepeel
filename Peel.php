@@ -20,6 +20,7 @@ Author URI: http://citrus-mist.com
  *----------------------------------------------------------------------------*/
 // require_once( plugin_dir_path( __FILE__ ) . 'CMView.class.php' );
 require_once( plugin_dir_path( __FILE__ ) . 'helper_funcs.php' );
+require_once( plugin_dir_path( __FILE__ ) . 'PL_Utility.php' );
 
 require_once( plugin_dir_path( __FILE__ ) . 'PL_Registry.php' );
 require_once( plugin_dir_path( __FILE__ ) . 'PL_Plugin.php' );

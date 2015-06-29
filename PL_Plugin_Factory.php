@@ -201,18 +201,22 @@ abstract class PL_Plugin_Factory {
 						$part .= 's';
 					}
 
-					$path .= ( count( $parts ) - 1 > $i ) ? $part . '/' : $part . '.php';
+					$path .= ( count( $parts ) - 1 > $i ) ? $part . '/' : $part;
 				}
 			
+			} else if ( stripos( $class_name, 'bootstrap' ) !== false ) {
+				$path .= $class_name;
 			} else {
-				$path .= $class_name . '.php';
+				$path .= 'models/' . $class_name;
 			}
+
+			$path .= '.php';
 
 			log_me( $path );
 		} else {
 			$path = strtolower( str_replace( '_', '-', $class ) );
 			$path = $this->get_plugindir_path() . '/includes/class-' . $path . '.php';
-		} 
+		}
 
 		if( file_exists( $path ) ) {
 			require( $path );
