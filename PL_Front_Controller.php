@@ -82,7 +82,10 @@ class PL_Front_Controller {
 		if( is_admin() ) {
 			$admin = $plugin->get_plugindir_path() . '/' . $module . '/admin/views/layouts/' . $layout;
 			require $admin;
-			PL_JS_Template_Include::get_instance()->register_templates( $this->controller->get_js_tmpls(), $plugin->get_plugindir_path() . '/' . $module . '/admin/views/' . $module);
+			PL_JS_Template_Include::get_instance()->register_templates( 
+				$this->controller->get_js_tmpls(), 
+				$plugin->get_plugindir_path() . '/' . $module . '/admin/views/' . $this->controller->get_name() 
+			);
 		} else {
 			$public          = $plugin->get_name() . '/' . $module . '/layouts/' . $layout;
 			$public_fallback = $plugin->get_plugindir_path() . '/' . $module . '/public/views/layouts/' . $layout;
@@ -90,10 +93,12 @@ class PL_Front_Controller {
 		}
 	}
 
-	public function dispatch( $route ) {
+	public function dispatch( $route, $params = null ) {
+
+		$param = ($params == null) ? $this->params : $params;
 
 		if( is_callable( $route->controller, $route->action ) ) {
-			$this->controller = new $route->controller( $this->params );
+			$this->controller = new $route->controller( $params );
 			$this->controller->{$route->action}();
 		} else {
 			//TODO throw an exception
@@ -107,7 +112,6 @@ class PL_Front_Controller {
 		$r_args = $this->controller->get_render_args();
 
 		if( $r_args === null ) {
-			log_me( __METHOD__ );
 
 			if( $this->params['format'] == 'json' ) {
 				wp_send_json( $this->controller->get_view_data() );

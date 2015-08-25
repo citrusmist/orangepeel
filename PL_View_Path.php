@@ -56,11 +56,11 @@ class PL_View_Path {
 			$parsed['template'] = $parts[0];
 		} else if( count( $parts ) === 2 ) {
 			$parsed['controller'] = $parts[0];
-			$parsed['template']        = $parts[1];
+			$parsed['template']   = $parts[1];
 		} else if( count( $parts ) === 3 ) {
-			$parsed['module']          = $parts[0];
+			$parsed['module']     = $parts[0];
 			$parsed['controller'] = $parts[1];
-			$parsed['template']        = $parts[2];
+			$parsed['template']   = $parts[2];
 		}
 
 		return $parsed;
