@@ -95,7 +95,7 @@ class PL_Front_Controller {
 
 	public function dispatch( $route, $params = null ) {
 
-		$param = ($params == null) ? $this->params : $params;
+		$params = ($params == null) ? $this->params : $params;
 
 		if( is_callable( $route->controller, $route->action ) ) {
 			$this->controller = new $route->controller( $params );
