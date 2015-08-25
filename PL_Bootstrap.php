@@ -17,11 +17,13 @@ abstract class PL_Bootstrap {
 	protected $cpts = array();
 
 	protected $page_factory;
+	protected $metabox_factory;
 
 	public function __construct( $plugin ) {
 		
-		$this->plugin       = $plugin;
-		$this->page_factory = \PL_Admin_Page_Factory::get_instance();
+		$this->plugin          = $plugin;
+		$this->page_factory    = \PL_Admin_Page_Factory::get_instance();
+		$this->metabox_factory = \PL_Admin_Metabox_Factory::get_instance();
 
 		$this->init();
 
@@ -56,13 +58,23 @@ abstract class PL_Bootstrap {
 	public function admin_resource( $name, $args = array() ) {
 		
 		$defaults = array(
-			'controller' => \PL_Inflector::default_ctrl_class( 'performances', $this, 'admin' ),
-			'plugin'     => $this->plugin->get_name()
+			'plugin' => $this->plugin->get_name()
 		);
 
 		$args = wp_parse_args( $args, $defaults );
 
 		$this->page_factory->resource( $name, $args );
+	}
+
+	public function route_metabox( $name, $args ) {
+
+		$defaults = array(
+			'plugin' => $this->plugin->get_name()
+		);
+
+		$args = wp_parse_args( $args, $defaults );
+
+		$this->metabox_factory->metabox( $name, $args );
 	}
 
 	public function add_cpt( $slug, $args, $controller = 'default' ) {
@@ -238,6 +250,7 @@ abstract class PL_Bootstrap {
 				'archive_title'      => __( ucfirst( $pl_slug ),                   $plugin_slug ),
 			)
 		);
+
 
 		$this->cpts[$slug] = wp_parse_args( $args, $defaults );
 
