@@ -6,7 +6,7 @@
 
 abstract class PL_Std_Model extends PL_Model {
 	
-	public function __construct( $props = array() ) {
+	public function __construct( $data = array() ) {
 		
 		$assocs = static::get_data_associations();
 
@@ -20,6 +20,12 @@ abstract class PL_Std_Model extends PL_Model {
 					$this->$name = null;
 				}
 
+			}
+		}
+
+		foreach( $data as $key => $value ) {
+			if( property_exists( $this, $key ) ) { 
+				$this->$key = $value;
 			}
 		}
 	}
@@ -469,16 +475,18 @@ abstract class PL_Std_Model extends PL_Model {
 	protected static function get_table_name() {
 
 		global $wpdb;
+		$reflect = new \ReflectionClass( get_called_class() );
 
 		$table_name = null;
-		$plural_class = strtolower( PL_Inflector::pluralize( get_called_class() ) );
+		$plural_class = strtolower(  PL_Inflector::pluralize( $reflect->getShortName() ) );
+		// $plural_class = strtolower( PL_Inflector::pluralize( get_called_class() ) );
 
 		if ( isset( static::$table_name ) ){
 			$table_name = $wpdb->{static::$table_name};
-		} elseif( property_exists( $wpdb, $plural_class ) ) {
-			$table_name = $wpdb->$plural_class;
+		} elseif( property_exists( $wpdb, 'pl_' . $plural_class ) ) {
+			$table_name = $wpdb->{'pl_' . $plural_class};
 		} else {
-			$table_name = $wpdb->prefix . $plural_class;
+			$table_name = $wpdb->prefix . 'pl_' . $plural_class;
 		}
 
 		return $table_name;
@@ -524,7 +532,5 @@ abstract class PL_Std_Model extends PL_Model {
 			return static::find_by( $prop, $arguments[0] );
 		}
 	}
-
-
 } 
 
