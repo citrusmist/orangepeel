@@ -1,8 +1,8 @@
 <?php
 
 /**
-* 
-*/
+ * 
+ */
 class PL_Route_Factory {
 	
 	protected $resource_actions;

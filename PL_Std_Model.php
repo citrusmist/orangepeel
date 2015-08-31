@@ -24,7 +24,9 @@ abstract class PL_Std_Model extends PL_Model {
 		}
 
 		foreach( $data as $key => $value ) {
-			if( property_exists( $this, $key ) ) { 
+			//If property isn't an associated object assing passed
+			//in value
+			if( !array_key_exists( $key, $assocs ) ) {
 				$this->$key = $value;
 			}
 		}
@@ -138,6 +140,7 @@ abstract class PL_Std_Model extends PL_Model {
 	public static function all( $args = array() ) {
 
 		$db_results = static::query( $args );
+		$results    = array();
 
 		if( $db_results === false ) {
 			return $db_results;
