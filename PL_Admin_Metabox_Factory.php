@@ -36,17 +36,17 @@ class PL_Admin_Metabox_Factory {
 		);	
 		$args = wp_parse_args( $args, $defaults );
 
-		$this->metaboxes[$name] = $args;
+		$this->metaboxes[] = $args;
 	}
 
 	public function add_meta_boxes() {
 
-		foreach( $this->metaboxes as $name => $args ) {
+		foreach( $this->metaboxes as $key => $args ) {
 
 			add_meta_box(
 				$args['id'],
 				$args['title'],
-				function( $post, $metabox ) use( &$args ) {
+				function( $post, $metabox ) use( $args ) {
 
 					$params = array_merge( 
 						array( 'post' => $post ), 

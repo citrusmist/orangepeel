@@ -60,7 +60,7 @@ class PL_Admin_Page_Factory {
 				$name_titleized,
 				$args['capability'],
 				$name,
-				function() use( &$args ) {
+				function() use( $args ) {
 					$fc = \PL_Front_Controller::get_instance();
 					$fc->dispatch( (object) array(
 						'controller' => $args['controller'], 
@@ -94,7 +94,7 @@ class PL_Admin_Page_Factory {
 						$submenu_title, 
 						$args['capability'], 
 						$handle, 
-						function () use( &$args, &$action ) {
+						function () use( $args, $action ) {
 							$fc = \PL_Front_Controller::get_instance();
 							$fc->dispatch( (object) array(
 								'controller' => $args['controller'], 
