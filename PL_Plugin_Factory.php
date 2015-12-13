@@ -68,6 +68,8 @@ abstract class PL_Plugin_Factory {
 
 			$class = '\\' . ucfirst( $name ) . '\Bootstrap';
 
+			log_me($class);
+
 			if( class_exists( $class ) ) {
 				$this->module_names[$name] = $class;
 			} else {
