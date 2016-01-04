@@ -92,6 +92,17 @@ class PL_Route_Factory {
 	}
 
 	public function get( $route, $args ) {
+		
+		$defaults = array( 
+			'type'        => 'custom',
+			'cpt'					=> '',       //is this necessary
+			'defaults'    => array(),
+			'constraints' => array(),
+			'params'      => array(),
+		);
+
+		$args = wp_parse_args( $args, $defaults );
+
 		$args['method'] = 'GET';
 		$class          = 'PL_Route_' . $args['type'];
 		$parser         =  new \PL_Route_Parser( array(
@@ -110,6 +121,17 @@ class PL_Route_Factory {
 	}
 
 	public function post( $route, $args ) {
+		
+		$defaults = array( 
+			'type'        => 'custom',
+			'cpt'					=> '',       //is this necessary
+			'defaults'    => array(),
+			'constraints' => array(),
+			'params'      => array(),
+		);
+
+		$args = wp_parse_args( $args, $defaults );
+
 		$args['method'] = 'POST';
 		$class          = 'PL_Route_' . $args['type'];
 		$parser         =  new \PL_Route_Parser( array(
