@@ -59,17 +59,11 @@ class PL_Router {
 		}
 
 		foreach( $this->get as $route => $args ) {
-			$this->routes = array_merge( 
-				$this->routes,
-				$this->factory->get( $route, $args ) 
-			);
+			$this->routes[] = $this->factory->get( $route, $args );
 		}
 		
 		foreach( $this->post as $route => $args ) {
-			$this->routes = array_merge( 
-				$this->routes, 
-				$this->factory->post( $route, $args ) 
-			);
+			$this->routes[] = $this->factory->post( $route, $args );
 		}
 	}
 
