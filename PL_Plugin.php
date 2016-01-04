@@ -88,7 +88,7 @@ abstract class PL_Plugin {
 	}
 
 
-	public function add_post_route( $name, $action ) {
+	/*public function add_post_route( $name, $action ) {
 		$this->router->post( $name, $action, $this->get_name() );
 	}
 
@@ -99,7 +99,7 @@ abstract class PL_Plugin {
 
 	public function add_resource_route( $name, $action ) {
 		$this->router->resource( $name, $action, $this->get_name() );
-	}
+	}*/
 
 /*	public function add_cpt_route( $name, $action, $qv ) {
 		$this->router->cpt( $name, $action, $qv, $this->get_name() );
@@ -117,11 +117,12 @@ abstract class PL_Plugin {
 		$this->router->cpt_builtin( $name, $actions, $this->get_name() );
 	}
 
-	public function route_get( $route, $args, $params = array() ) {
-		$defaults = array(
-			'cpt'    => false,
-			'plugin' => $this->get_name()
-		);
+	public function route_get( $name, $args ) {
+		$this->router->get( $name, $args, $this->get_name() );
+	}
+
+	public function route_post( $route, $args ) {
+		$this->router->post( $name, $args, $this->get_name() );
 	}
 
 	public function route_resource( $name, $args ) {

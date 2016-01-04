@@ -112,21 +112,16 @@ class PL_Router {
 		);
 	}
 
-	public function get( $name, $action, $plugin ) {
+	public function get( $name, $args, $plugin ) {
 
 		$defaults = array(
 			'cpt'    => false,
 			'plugin' => $plugin
 		);
 
-		if( is_string( $args ) && stripos( $args, '#' ) !== false ) {
-			$ctrlAction = explode( '#', $action );
+		$args = $this->parse_ctrl_action( $name, $args );
 
-			$args = array( 
-				'controller' => $ctrlAction[0],
-				'action'     => $ctrlAction[1]
-			);
-		} else {
+		if ( empty( $args['controller'] ) || empty( $args['action'] ) ) {
 			error_log( "Invalid controller#action supplied for route {$name}" );
 			return;
 		}
@@ -134,29 +129,18 @@ class PL_Router {
 		$args = wp_parse_args( $args, $defaults );
 
 		$this->get[$name] = $args;
-
-		/*$this->endpoints[$name] = array(
-			'action'  => $action,
-			'plugin'  => $plugin,
-			'method'  => 'GET'
-		);*/
 	}
 
-	public function post( $name, $action, $plugin ) {
+	public function post( $name, $args, $plugin ) {
 
 		$defaults = array(
 			'cpt'    => false,
 			'plugin' => $plugin
 		);
 
-		if( is_string( $args ) && stripos( $args, '#' ) !== false ) {
-			$ctrlAction = explode( '#', $action );
+		$args = $this->parse_ctrl_action( $name, $args );
 
-			$args = array( 
-				'controller' => $ctrlAction[0],
-				'action'     => $ctrlAction[1]
-			);
-		} else {
+		if ( empty( $args['controller'] ) || empty( $args['action'] ) ) {
 			error_log( "Invalid controller#action supplied for route {$name}" );
 			return;
 		}
@@ -164,6 +148,36 @@ class PL_Router {
 		$args = wp_parse_args( $args, $defaults );
 
 		$this->post[$name] = $args;
+	}
+
+	protected function parse_ctrl_action( $name, $args ) {
+
+		$ctrlAction = array();
+
+		if( is_string( $args ) && stripos( $args, '#' ) !== false ) {
+			$ctrlAction = explode( '#', $args );
+
+			$ctrlAction = array( 
+				'controller' => $ctrlAction[0],
+				'action'     => $ctrlAction[1]
+			);
+		} elseif ( is_string( $args ) ) {
+			//if action name isn't specified it is inferred from route name
+			
+			$ctrlAction = array( 
+				'controller' => $args,
+				'action'     => $name
+			);
+		} elseif ( is_array( $args ) && !empty( $args['controller'] ) ) {
+
+			if( empty( $args['action'] ) ) {
+				$args['action'] = $name;
+			} 
+
+			$ctrlAction = $args;
+		}
+
+		return $ctrlAction;
 	}
 
 	public function resolve( $wp ) {
