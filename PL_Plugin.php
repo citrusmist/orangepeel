@@ -59,13 +59,13 @@ abstract class PL_Plugin {
 	 */
 	protected $modules;
 	
-	protected $route;
+	protected $router;
 
 	public function __construct( $version, $plugindir_path, $route ) {
 		
 		$this->plugindir_path = $plugindir_path;
 		$this->loader         = new PL_Plugin_Loader();
-		$this->route          = $route;
+		$this->router         = $route;
 		// $this->registry       = $this->load_modules( $modules );
 
 		$this->set_locale();
@@ -89,24 +89,24 @@ abstract class PL_Plugin {
 
 
 	public function add_post_route( $name, $action ) {
-		$this->route->post( $name, $action, $this->get_name() );
+		$this->router->post( $name, $action, $this->get_name() );
 	}
 
 
 	public function add_get_route( $name, $action ) {
-		$this->route->get( $name, $action, $this->get_name() );
+		$this->router->get( $name, $action, $this->get_name() );
 	}
 
 	public function add_resource_route( $name, $action ) {
-		$this->route->resource( $name, $action, $this->get_name() );
+		$this->router->resource( $name, $action, $this->get_name() );
 	}
 
 /*	public function add_cpt_route( $name, $action, $qv ) {
-		$this->route->cpt( $name, $action, $qv, $this->get_name() );
+		$this->router->cpt( $name, $action, $qv, $this->get_name() );
 	}*/
 
 	public function add_cpt_resource_routes( $name, $controller ) {
-		$this->route->cpt_resource( $name, $controller, $this->get_name() );
+		$this->router->cpt_resource( $name, $controller, $this->get_name() );
 	}
 
 	/**
@@ -114,7 +114,7 @@ abstract class PL_Plugin {
 	 * If CPT doesnt support archive pages then index action isn't registered
 	 */
 	public function add_cpt_builtin_routes( $name, $actions ) {
-		$this->route->cpt_builtin( $name, $actions, $this->get_name() );
+		$this->router->cpt_builtin( $name, $actions, $this->get_name() );
 	}
 
 	public function route_get( $route, $args, $params = array() ) {
@@ -125,7 +125,7 @@ abstract class PL_Plugin {
 	}
 
 	public function route_resource( $name, $args ) {
-		$this->route->resource( $name, $args, $this->get_name() );
+		$this->router->resource( $name, $args, $this->get_name() );
 	}
 
 	/**
