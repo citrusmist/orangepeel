@@ -9,7 +9,11 @@ class PL_User_Model extends PL_Model {
 
 	function __construct( $data = array() ) {
 
-		$this->_data = (object) $data;
+		if( is_a( $data, "WP_User" ) ) {
+			$this->_user = $data;
+		} else {
+			$this->_data = (object) $data;
+		}
 	}
 
 	public function __get( $prop ) {
