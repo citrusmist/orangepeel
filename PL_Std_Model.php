@@ -12,7 +12,7 @@ abstract class PL_Std_Model extends PL_Model {
 
 		if( !empty( $assocs ) ) {
 
-			foreach( $assocs as $name => $props ) {
+			/*foreach( $assocs as $name => $props ) {
 
 				if( $props['cardinality'] == 'has_many' ) {
 					$this->$name = array();
@@ -20,15 +20,48 @@ abstract class PL_Std_Model extends PL_Model {
 					$this->$name = null;
 				}
 
-			}
+			}*/
+
+			$this->build_associations( $assocs, $data );
 		}
 
 		foreach( $data as $key => $value ) {
-			//If property isn't an associated object assing passed
-			//in value
+
 			if( !array_key_exists( $key, $assocs ) ) {
+				//If property isn't an associated object assign passed in value
 				$this->$key = $value;
+			} else {
+
 			}
+		}
+	}
+
+	protected function build_associations( $assocs, $data ) {
+		
+		if( empty( $assocs ) ) { 
+			return;
+		}
+
+		$namespace = substr( get_called_class(), 0, strrpos( get_called_class(), '\\' ) );
+
+		foreach( $assocs as $name => $props ) {
+
+			if( $props['cardinality'] == 'has_many' ) {
+
+				$this->$name   = array();
+				$name_singular = \PL_Inflector::singularize( $name );
+				$rc            = new ReflectionClass( $namespace . '\\' . $name_singular );
+
+				if( array_key_exists( $name_singular, $data ) ) {
+					foreach( $data[$name_singular] as $assoc_data ) {
+						$this->{$name}[] = $rc->newInstance( $assoc_data );
+					}
+				}
+			} else {
+				$rc          = new ReflectionClass( $namespace . '\\' . ucfirst( $name ) );
+				$this->$name = $rc->newInstance( array_key_exists( $name, $data ) ? $data[$name] : array() );
+			}
+
 		}
 	}
 
@@ -175,9 +208,21 @@ abstract class PL_Std_Model extends PL_Model {
 
 
 	public static function find_by_property( $property, $value ) {
+
+		global $wpdb;
 		
+		/*$results = static::all( array(
+			'conditions' => " AND $property = " . is_numeric( $value ) ? $value : "'$value'"
+		) );*/
+
+
+		$conditions = $wpdb->prepare(
+			"	AND $property=" . ( is_numeric( $value ) ? '%d' : '%s' ),
+			$value
+		);
+
 		$results = static::all( array(
-			'conditions' => ' AND ' . $property . '=' . $value
+			'conditions' => $conditions
 		) );
 
 		if( strtolower( $property ) == 'id' ){
@@ -280,17 +325,11 @@ abstract class PL_Std_Model extends PL_Model {
 
 		global $wpdb;
 
-		$desc  = $this->get_data_description();
-		$data  = array();
+		$this->save_associations( array('belongs_to') );
 
-		foreach ( array_keys( $desc ) as $prop ) {
+		$data = $this->extract_for_saving();
 
-			if( !empty( $this->$prop ) ){
-				$data[$prop] = stripslashes( $this->$prop );
-			}
-		}
-
-		if( !empty( $this->id ) ) {
+		if( !$this->is_record_new() ) {
 			
 			$result = $wpdb->update(
 				static::get_table_name(),
@@ -320,17 +359,37 @@ abstract class PL_Std_Model extends PL_Model {
 		}
 
 		if( $result !== false ){
-			$this->save_associations();
+			$this->save_associations( array('has_many') );
 		}
 
 		return $result;
+	}
+
+	protected function extract_for_saving() {
+		$data          = array();
+		$desc          = $this->get_data_description();
+		$relationships = static::get_data_associations();
+
+		foreach ( array_keys( $desc ) as $prop ) {
+			if( !empty( $this->$prop ) ){
+				$data[$prop] = stripslashes( $this->$prop );
+			}
+		}
+
+		foreach( $relationships as $name => $props ) {
+			if( $props['cardinality'] == 'belongs_to' && !empty( $this->{$name . "_id"} )  ) {
+				$data[$name. "_id"] = $this->{$name . "_id"};
+			}
+		}
+
+		return $data;
 	}
 
 	/*
 	 * FIXME for now we are assuming that if this method is called
 	 * associations need to be saved. THIS IS WRONG 
 	 */
-	protected function save_associations() {
+	protected function save_associations( array $filters ) {
 
 		global $wpdb;
 
@@ -342,25 +401,42 @@ abstract class PL_Std_Model extends PL_Model {
 
 		foreach( $relationships as $name => $props ) {
 
-			if( $props['cardinality'] != 'has_many' ) {
+			if( empty( $this->$name ) || !in_array( $props['cardinality'], $filters ) ) {
 				continue;
 			}
 
-			if( empty( $this->$name ) 
-				|| !is_a( $this->{$name}[0], 'PL_Std_Model' ) ) {
-				continue;
-			}
+			if( $props['cardinality'] == 'has_many' ) {
 
-			foreach ( $this->$name as $association ) {
+				if( !is_a( $this->{$name}[0], 'PL_Std_Model' ) ) {
+					continue;
+				}
 
-				$do_save = $association->is_record_new() || $association->is_record_changed();
+				foreach ( $this->$name as $association ) {
+
+					$do_save = $association->is_record_new() || $association->is_record_changed();
+
+					if( $do_save ) {
+						$key_name = strtolower( get_class( $this ) ) . '_id';
+						$association->$key_name = $this->id;
+						$association->save();
+					}
+				}			
+			} else if ( $props['cardinality'] == 'belongs_to' ) {
+
+				if( !is_a( $this->$name, 'PL_Std_Model' ) ) {
+					continue;
+				}
+
+				$do_save = $this->$name->is_record_new() || $this->$name->is_record_changed();
 
 				if( $do_save ) {
-					$key_name = strtolower( get_class( $this ) ) . '_id';
-					$association->$key_name = $this->id;
-					$association->save();
+					$this->$name->save();
+
+					$key_name = strtolower( ( new \ReflectionClass( $this->$name ) )->getShortName() ) . '_id';
+					$this->$key_name = $this->$name->id;
+
 				}
-			}			
+			}
 		}
 	}
 
