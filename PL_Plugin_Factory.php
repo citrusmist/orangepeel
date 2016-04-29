@@ -130,10 +130,19 @@ abstract class PL_Plugin_Factory {
 			call_user_func( array( $activator_class, 'activate' ) );
 		}
 
+		//Plugin deactivator
+		if( method_exists( $activator_class, 'install' ) ) {
+			call_user_func( array( $activator_class, 'install' ) );
+		}
+
 		foreach ( $mods as $name => $class ) {
 
 			if( method_exists( $class, 'activate' ) ) {
 				call_user_func( array( $class, 'activate' ), $plugin );
+			}
+
+			if( method_exists( $class, 'install' ) ) {
+				call_user_func( array( $class, 'install' ), $plugin );
 			}
 		}
 	}
