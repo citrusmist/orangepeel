@@ -104,7 +104,7 @@ abstract class PL_Std_Model extends PL_Model {
 
 		$defaults = array(
 			'select'     => '*',
-			'join'       => '',
+			'joins'      => '',
 			'conditions' => '',
 			'order'      => '',
 			'group'      => '',
@@ -128,32 +128,32 @@ abstract class PL_Std_Model extends PL_Model {
 				FROM $table ";
 		}
 
-		if( !empty( $args['join' ] ) ) {
-			$sql .= $args['join'];
+		if( !empty( $args['joins'] ) ) {
+			$sql .= $args['joins'];
 		}
 
-		if( !empty( $args['conditions' ] ) ) {
+		if( !empty( $args['conditions'] ) ) {
 
 			$sql .= "
-				WHERE 1=1 {$args['conditions' ]} ";
+				WHERE 1=1 {$args['conditions']} ";
 		}
 
-		if( !empty( $args['group' ] ) ) {
+		if( !empty( $args['group'] ) ) {
 
 			$sql .= "
-				GROUP BY {$args['group' ]} ";
+				GROUP BY {$args['group']} ";
 		}
 		
-		if( !empty( $args['having' ] ) ) {
+		if( !empty( $args['having'] ) ) {
 
 			$sql .= "
-				HAVING {$args['having' ]} ";
+				HAVING {$args['having']} ";
 		}
 
-		if( !empty( $args['order' ] ) ) {
+		if( !empty( $args['order'] ) ) {
 
 			$sql .= "
-				ORDER BY {$args['order' ]} ";
+				ORDER BY {$args['order']} ";
 		}
 
 		if( !empty( $args['offset'] ) && empty( $args['limit' ] ) ) {
@@ -174,18 +174,60 @@ abstract class PL_Std_Model extends PL_Model {
 
 		$db_results = static::query( $args );
 		$results    = array();
+		$reflection = new \ReflectionClass( get_called_class() ); 
+		$assocs     = static::get_data_associations();
 
 		if( $db_results === false ) {
 			return $db_results;
-		} else {
-			foreach ( $db_results as $result ) {
-				$results[] = new static( $result );
-			}
-
-			return $results;
 		}
-	}
 
+		foreach ( $db_results as $result ) {
+			$results[] = new static( $result );
+		}
+
+		if( !empty( $args['includes'] ) ) {
+			//TODO query and build associations
+			$ids = array_map( 
+				function( $result ) {
+					return $result->id;
+				}, 
+				$results 
+			);
+
+			log_me( $ids );
+
+			foreach( $args['includes'] as $include ) {
+
+				if( !static::has_association( $include ) ) {
+					continue;
+				}
+
+				$class = $reflection->getNamespaceName() . '\\' . \PL_Inflector::pl_classify( $include );
+
+				if( $assocs[$include]['cardinality'] == "has_many" ) {
+
+					$foreign_key    = strtolower( $reflection->getShortName() ) . "_id";
+					$results_assocs = $class::all( array(
+						'conditions' => " AND " . $class::get_table_name() . "." . $foreign_key . " IN (" . implode( ',',  $ids ) . ")"
+					) );
+
+				} elseif( $assocs[$include]['cardinality'] == "belongs_to" ) {
+
+					$foreign_key    = strtolower( $include ) . '_id';
+					$results_assocs = $class::all( array(
+						'joins'      => 'INNER JOIN ' . static::get_table_name() . ' ON ' . $class::get_table_name() . '.id=' . static::get_table_name() . '.' . $foreign_key,
+						'conditions' => ' AND ' . static::get_table_name() . "." . $foreign_key . " IN (" . implode( ',',  $ids ) . ")"
+					) );
+				}
+
+
+				// log_me( $results_assocs );
+			}
+		}
+
+		log_me( $results );
+		return $results;
+	}
 
 	public static function find_by( $property, $value ) {
 
@@ -291,28 +333,6 @@ abstract class PL_Std_Model extends PL_Model {
 		return $object;
 	}
 	
-	public static function get_data_description() {
-		return static::describe_data();		
-	}
-
-
-	public static function get_data_associations() {
-
-		if( method_exists( get_called_class(), 'describe_associations' ) ){
-			return static::describe_associations();
-		} else{
-			return array();
-		}
-	}
-
-	public static function get_record_count() {
-		$result = self::query( array(
-			'select' => 'COUNT(*) AS orgs_total_count', 
-		) );
-
-		return $result[0]->orgs_total_count;
-	}
-
 
 	// abstract protected static function describe_data();
 

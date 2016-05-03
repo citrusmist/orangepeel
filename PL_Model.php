@@ -52,7 +52,6 @@ abstract class PL_Model implements PL_Recordable, PL_Validatable {
 		return static::$_data_desc;
 	}
 
-
 	public function validate() {
 
 		$descriptions = static::get_data_description();
@@ -69,6 +68,46 @@ abstract class PL_Model implements PL_Recordable, PL_Validatable {
 		}
 	}
 
+	public static function get_data_associations() {
+
+		if( method_exists( get_called_class(), 'describe_associations' ) ){
+			return static::describe_associations();
+		} else{
+			return array();
+		}
+	}
+
+	public static function has_association( $name ) {
+
+		$assocs = static::get_data_associations();
+
+		log_me( __METHOD__ );
+
+		if( !empty( $assocs[$name] ) ) {
+			log_me( $name . ' is associated with ' . get_called_class() );
+			return true;
+		}
+
+		$name_plural = \PL_Inflector::pluralize( $name );
+		
+		if( !empty( $assocs[$name_plural] ) 
+				&& $assocs[$name_plural]['cardinality'] == 'has_many' ) {
+			return true;
+		} 
+
+		return false;
+	}
+
+	public static function get_record_count() {
+		/*
+		FIXME: table name is hard-coded here
+
+		$result = self::query( array(
+			'select' => 'COUNT(*) AS orgs_total_count', 
+		) );
+
+		return $result[0]->orgs_total_count;*/
+	}
 
 	public static function __callStatic( $name, $arguments ) {
 

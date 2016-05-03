@@ -333,6 +333,25 @@ class PL_Inflector
 				return PL_Inflector::camelize(PL_Inflector::singularize($table_name));
 		}
 
+		/**
+		* Converts a table name to its class name according to Peel framework 
+		* naming conventions.
+		*
+		* Converts "people" to "Person"
+		*
+		* @access public
+		* @static
+		* @see tableize
+		* @param    string    $table_name    Table name for getting related ClassName.
+		* @return string SingularClassName
+		*/
+		public static function pl_classify($name)
+		{
+				$class_name = PL_Inflector::titleize( $name, 'all' );
+				return str_replace( ' ', '_',  $class_name );
+		}
+
+
 		// }}}
 		// {{{ ordinalize()
 
