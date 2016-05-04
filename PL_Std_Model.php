@@ -33,6 +33,7 @@ abstract class PL_Std_Model extends PL_Model {
 
 		$namespace = substr( get_called_class(), 0, strrpos( get_called_class(), '\\' ) );
 
+
 		foreach( $assocs as $name => $props ) {
 
 			if( $props['cardinality'] == 'has_many' ) {
@@ -42,14 +43,14 @@ abstract class PL_Std_Model extends PL_Model {
 
 				if( array_key_exists( $name_singular, $data ) ) {
 					
-					$rc = new ReflectionClass( $namespace . '\\' . \PL_Inflector::classify( $name_singular ) );
+					$rc = new ReflectionClass( $namespace . '\\' . \PL_Inflector::pl_classify( $name_singular ) );
 
 					foreach( $data[$name_singular] as $assoc_data ) {
 						$this->{$name}[] = $rc->newInstance( $assoc_data );
 					}
 				}
 			} else {
-				$rc          = new ReflectionClass( $namespace . '\\' . \PL_Inflector::classify( $name ) );
+				$rc          = new ReflectionClass( $namespace . '\\' . \PL_Inflector::pl_classify( $name ) );
 				$this->$name = array_key_exists( $name, $data ) ? $rc->newInstance( $data[$name] ) : false;
 			}
 
@@ -174,25 +175,24 @@ abstract class PL_Std_Model extends PL_Model {
 			$results[] = new static( $result );
 		}
 
-		if( !empty( $args['includes'] ) ) {
-			//TODO query and build associations
+		if( is_array( $args['includes'] ) && !empty( $args['includes'] ) ) {
 
-			foreach( $args['includes'] as $include ) {
+			foreach( $args['includes'] as $assoc => $props ) {
 
-				if( !static::has_association( $include ) ) {
+				if( !static::has_association( $assoc ) || empty( $props ) ) {
 					continue;
 				}
 
-				static::include_association( $include, $results );
+				static::include_association( $assoc, $props, $results );
 			}
 		}
 
-		log_me( $results );
+		// log_me( $results );
 		return $results;
 	}
 
 
-	public static function include_association( $include, &$results ) {
+	public static function include_association( $include, $props, &$results ) {
 
 		if( !static::has_association( $include ) ) {
 			continue;
@@ -208,7 +208,8 @@ abstract class PL_Std_Model extends PL_Model {
 		}
 
 		$query = array( 
-			'select' => $class::get_table_name() . ".*"
+			'select'   => $class::get_table_name() . ".*",
+			'includes' => is_array( $props ) ? $props : array()
 		);
 
 		$ids = array_map( 
@@ -217,8 +218,6 @@ abstract class PL_Std_Model extends PL_Model {
 			}, 
 			$results 
 		);
-
-		log_me( $ids );
 
 		if( $assocs[$include]['cardinality'] == "has_many" ) {
 
