@@ -165,8 +165,6 @@ abstract class PL_Std_Model extends PL_Model {
 
 		$db_results = static::query( $args );
 		$results    = array();
-		$reflection = new \ReflectionClass( get_called_class() ); 
-		$assocs     = static::get_data_associations();
 
 		if( $db_results === false ) {
 			return $db_results;
@@ -178,14 +176,6 @@ abstract class PL_Std_Model extends PL_Model {
 
 		if( !empty( $args['includes'] ) ) {
 			//TODO query and build associations
-			$ids = array_map( 
-				function( $result ) {
-					return $result->id;
-				}, 
-				$results 
-			);
-
-			log_me( $ids );
 
 			foreach( $args['includes'] as $include ) {
 
@@ -193,71 +183,93 @@ abstract class PL_Std_Model extends PL_Model {
 					continue;
 				}
 
-				if( $assocs[$include]['cardinality'] == "has_many" ) {
-					$class = $reflection->getNamespaceName() . '\\' . \PL_Inflector::pl_classify( \PL_Inflector::singularize( $include ) );
-				} else {
-					$class = $reflection->getNamespaceName() . '\\' . \PL_Inflector::pl_classify( $include );
-				}
-
-				$query = array( 
-					'select' => $class::get_table_name() . ".*"
-				);
-
-				if( $assocs[$include]['cardinality'] == "has_many" ) {
-
-					$foreign_key = strtolower( $reflection->getShortName() ) . "_id";
-					$query       = array_merge( $query, array(
-						'conditions' => " AND " . $class::get_table_name() . "." . $foreign_key . " IN (" . implode( ',',  $ids ) . ")"
-					) );
-					$results_assoc = $class::all( $query );
-
-					array_walk( 
-						$results_assoc,
-						function( &$assoc, $key ) use ( &$results, $foreign_key, $include ) {
-
-							foreach( $results as $key => $result ) {
-								//Probably more efficient if we could remove assigned association from $results_assoc
-
-								if( $assoc->{$foreign_key} == $result->id ) {
-									$results[$key]->{$include}[] = $assoc;
-									break;
-								}
-							}
-						}
-					);
-
-				} elseif( $assocs[$include]['cardinality'] == "belongs_to" ) {
-
-					$foreign_key = strtolower( $include ) . '_id';
-					$query       = array_merge( $query, array(
-						'joins'      => 'INNER JOIN ' . static::get_table_name() . ' ON ' . $class::get_table_name() . '.id=' . static::get_table_name() . '.' . $foreign_key,
-						'conditions' => ' AND ' . static::get_table_name() . "." . $foreign_key . " IN (" . implode( ',',  $ids ) . ")"
-					) );
-					
-					$results_assoc = $class::all( $query );
-
-					//TODO: refactor so list each is used for perfromance optimisation
-					array_walk( 
-						$results,
-						function( &$result, $key ) use ( $results_assoc, $foreign_key, $include ) {
-
-							foreach( $results_assoc as $key => $assoc ) {
-								//Probably more efficient if we could remove assigned association from $results_assoc
-
-								if( $result->{$foreign_key} == $assoc->id ) {
-									$result->{$include} = $assoc;
-									break;
-								}
-							}
-						}
-					);
-
-				}
+				static::include_association( $include, $results );
 			}
 		}
 
 		log_me( $results );
 		return $results;
+	}
+
+
+	public static function include_association( $include, &$results ) {
+
+		if( !static::has_association( $include ) ) {
+			continue;
+		}
+
+		$assocs     = static::get_data_associations();
+		$rc_this = new \ReflectionClass( get_called_class() ); 
+
+		if( $assocs[$include]['cardinality'] == "has_many" ) {
+			$class = $rc_this->getNamespaceName() . '\\' . \PL_Inflector::pl_classify( \PL_Inflector::singularize( $include ) );
+		} else {
+			$class = $rc_this->getNamespaceName() . '\\' . \PL_Inflector::pl_classify( $include );
+		}
+
+		$query = array( 
+			'select' => $class::get_table_name() . ".*"
+		);
+
+		$ids = array_map( 
+			function( $result ) {
+				return $result->id;
+			}, 
+			$results 
+		);
+
+		log_me( $ids );
+
+		if( $assocs[$include]['cardinality'] == "has_many" ) {
+
+			$foreign_key = strtolower( $rc_this->getShortName() ) . "_id";
+			$query       = array_merge( $query, array(
+				'conditions' => " AND " . $class::get_table_name() . "." . $foreign_key . " IN (" . implode( ',',  $ids ) . ")"
+			) );
+			$results_assoc = $class::all( $query );
+
+			array_walk( 
+				$results_assoc,
+				function( &$assoc, $key ) use ( &$results, $foreign_key, $include ) {
+
+					foreach( $results as $key => $result ) {
+						//Probably more efficient if we could remove assigned association from $results_assoc
+
+						if( $assoc->{$foreign_key} == $result->id ) {
+							$results[$key]->{$include}[] = $assoc;
+							break;
+						}
+					}
+				}
+			);
+
+		} elseif( $assocs[$include]['cardinality'] == "belongs_to" ) {
+
+			$foreign_key = strtolower( $include ) . '_id';
+			$query       = array_merge( $query, array(
+				'joins'      => 'INNER JOIN ' . static::get_table_name() . ' ON ' . $class::get_table_name() . '.id=' . static::get_table_name() . '.' . $foreign_key,
+				'conditions' => ' AND ' . static::get_table_name() . "." . $foreign_key . " IN (" . implode( ',',  $ids ) . ")"
+			) );
+			
+			$results_assoc = $class::all( $query );
+
+			//TODO: refactor so list each is used for perfromance optimisation
+			array_walk( 
+				$results,
+				function( &$result, $key ) use ( $results_assoc, $foreign_key, $include ) {
+
+					foreach( $results_assoc as $key => $assoc ) {
+						//Probably more efficient if we could remove assigned association from $results_assoc
+
+						if( $result->{$foreign_key} == $assoc->id ) {
+							$result->{$include} = $assoc;
+							break;
+						}
+					}
+				}
+			);
+		}
+
 	}
 
 	public static function find_by( $property, $value ) {
