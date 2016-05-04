@@ -11,17 +11,6 @@ abstract class PL_Std_Model extends PL_Model {
 		$assocs = static::get_data_associations();
 
 		if( !empty( $assocs ) ) {
-
-			/*foreach( $assocs as $name => $props ) {
-
-				if( $props['cardinality'] == 'has_many' ) {
-					$this->$name = array();
-				} else{
-					$this->$name = null;
-				}
-
-			}*/
-
 			$this->build_associations( $assocs, $data );
 		}
 
@@ -50,16 +39,18 @@ abstract class PL_Std_Model extends PL_Model {
 
 				$this->$name   = array();
 				$name_singular = \PL_Inflector::singularize( $name );
-				$rc            = new ReflectionClass( $namespace . '\\' . $name_singular );
 
 				if( array_key_exists( $name_singular, $data ) ) {
+					
+					$rc = new ReflectionClass( $namespace . '\\' . \PL_Inflector::classify( $name_singular ) );
+
 					foreach( $data[$name_singular] as $assoc_data ) {
 						$this->{$name}[] = $rc->newInstance( $assoc_data );
 					}
 				}
 			} else {
-				$rc          = new ReflectionClass( $namespace . '\\' . ucfirst( $name ) );
-				$this->$name = $rc->newInstance( array_key_exists( $name, $data ) ? $data[$name] : array() );
+				$rc          = new ReflectionClass( $namespace . '\\' . \PL_Inflector::classify( $name ) );
+				$this->$name = array_key_exists( $name, $data ) ? $rc->newInstance( $data[$name] ) : false;
 			}
 
 		}
