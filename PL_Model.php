@@ -88,12 +88,15 @@ abstract class PL_Model implements PL_Recordable, PL_Validatable {
 			return true;
 		}
 
+		/*
+		README: The snippet below returns true for if we pass in singular word for a has_many association
+		think for now this isn't necessary
 		$name_plural = \PL_Inflector::pluralize( $name );
 		
 		if( !empty( $assocs[$name_plural] ) 
 				&& $assocs[$name_plural]['cardinality'] == 'has_many' ) {
 			return true;
-		} 
+		} */
 
 		return false;
 	}
