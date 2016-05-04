@@ -202,26 +202,66 @@ abstract class PL_Std_Model extends PL_Model {
 					continue;
 				}
 
-				$class = $reflection->getNamespaceName() . '\\' . \PL_Inflector::pl_classify( $include );
+				if( $assocs[$include]['cardinality'] == "has_many" ) {
+					$class = $reflection->getNamespaceName() . '\\' . \PL_Inflector::pl_classify( \PL_Inflector::singularize( $include ) );
+				} else {
+					$class = $reflection->getNamespaceName() . '\\' . \PL_Inflector::pl_classify( $include );
+				}
+
+				$query = array( 
+					'select' => $class::get_table_name() . ".*"
+				);
 
 				if( $assocs[$include]['cardinality'] == "has_many" ) {
 
-					$foreign_key    = strtolower( $reflection->getShortName() ) . "_id";
-					$results_assocs = $class::all( array(
+					$foreign_key = strtolower( $reflection->getShortName() ) . "_id";
+					$query       = array_merge( $query, array(
 						'conditions' => " AND " . $class::get_table_name() . "." . $foreign_key . " IN (" . implode( ',',  $ids ) . ")"
 					) );
+					$results_assoc = $class::all( $query );
+
+					array_walk( 
+						$results_assoc,
+						function( &$assoc, $key ) use ( &$results, $foreign_key, $include ) {
+
+							foreach( $results as $key => $result ) {
+								//Probably more efficient if we could remove assigned association from $results_assoc
+
+								if( $assoc->{$foreign_key} == $result->id ) {
+									$results[$key]->{$include}[] = $assoc;
+									break;
+								}
+							}
+						}
+					);
 
 				} elseif( $assocs[$include]['cardinality'] == "belongs_to" ) {
 
-					$foreign_key    = strtolower( $include ) . '_id';
-					$results_assocs = $class::all( array(
+					$foreign_key = strtolower( $include ) . '_id';
+					$query       = array_merge( $query, array(
 						'joins'      => 'INNER JOIN ' . static::get_table_name() . ' ON ' . $class::get_table_name() . '.id=' . static::get_table_name() . '.' . $foreign_key,
 						'conditions' => ' AND ' . static::get_table_name() . "." . $foreign_key . " IN (" . implode( ',',  $ids ) . ")"
 					) );
+					
+					$results_assoc = $class::all( $query );
+
+					//TODO: refactor so list each is used for perfromance optimisation
+					array_walk( 
+						$results,
+						function( &$result, $key ) use ( $results_assoc, $foreign_key, $include ) {
+
+							foreach( $results_assoc as $key => $assoc ) {
+								//Probably more efficient if we could remove assigned association from $results_assoc
+
+								if( $result->{$foreign_key} == $assoc->id ) {
+									$result->{$include} = $assoc;
+									break;
+								}
+							}
+						}
+					);
+
 				}
-
-
-				// log_me( $results_assocs );
 			}
 		}
 
