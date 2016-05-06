@@ -79,18 +79,6 @@ abstract class PL_Std_Model extends PL_Model {
 		}
 	}
 
-	public function is_record_new() {
-
-		if( property_exists( $this, 'id' ) ) {
-			return empty( $this->id );
-		}
-
-		return $_new_record;
-	}
-
-	public function is_record_changed() {
-		return $_changed_record;
-	}
 
 	protected static function query( $args = array() ) {
 
@@ -175,7 +163,7 @@ abstract class PL_Std_Model extends PL_Model {
 			$results[] = new static( $result );
 		}
 
-		if( is_array( $args['includes'] ) && !empty( $args['includes'] ) ) {
+		if( !empty( $args['includes'] ) && is_array( $args['includes'] ) ) {
 
 			foreach( $args['includes'] as $assoc => $props ) {
 
@@ -598,7 +586,7 @@ abstract class PL_Std_Model extends PL_Model {
 
 	public function validate(){
 
-		$descriptions = self::get_data_description();
+		$descriptions = static::get_data_description();
 
 		foreach ($descriptions as $key => $description) {
 
@@ -655,6 +643,22 @@ abstract class PL_Std_Model extends PL_Model {
 		return $table_name;
 	}
 
+	public function __set( $name, $value ) {
+
+		if( method_exists( $this, 'set_' . $name ) ) {
+			$this->{"set_$name"}( $value );
+		} else {
+			$this->$name = $value;
+		}
+
+		//README: this should probably sit in the parent class
+		//so that CPT_Model and User model could make use of it 
+		if( $name == 'id' ) {
+			$this->_new_record = false;
+		}
+
+		$this->_changed_record = true;
+	}
 
 	public function __get( $name ) {
 
