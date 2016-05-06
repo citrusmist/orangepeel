@@ -7,7 +7,7 @@ abstract class PL_Model implements PL_Recordable, PL_Validatable {
 
 	protected $_errors         = array();
 	protected $_changed_record = false;
-	protected $_new_record     = false;
+	protected $_new_record     = true;
 	protected $_validatable_props = array();
 
 	/*
@@ -44,12 +44,7 @@ abstract class PL_Model implements PL_Recordable, PL_Validatable {
 	}
 
 	public static function get_data_description() {
-
-		if ( self::$_data_desc === null ){
-			static::$_data_desc = static::describe_data();
-		}
-
-		return static::$_data_desc;
+		return static::describe_data();
 	}
 
 	public function validate() {
@@ -99,6 +94,15 @@ abstract class PL_Model implements PL_Recordable, PL_Validatable {
 		} */
 
 		return false;
+	}
+
+	public function is_record_new() {
+		//FIXME: This won't work for PL_Std_Model as `id` property is in capitals: `ID`
+		return empty( $this->id ) ? $this->_new_record : false;
+	}
+
+	public function is_record_changed() {
+		return $_changed_record;
 	}
 
 	public static function get_record_count() {
