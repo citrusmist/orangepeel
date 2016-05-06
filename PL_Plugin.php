@@ -121,7 +121,7 @@ abstract class PL_Plugin {
 		$this->router->get( $name, $args, $this->get_name() );
 	}
 
-	public function route_post( $route, $args ) {
+	public function route_post( $name, $args ) {
 		$this->router->post( $name, $args, $this->get_name() );
 	}
 
